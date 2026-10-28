@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>接壤之楔 — 原型 M6 成長與平衡</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234fd1ff'/%3E%3C/svg%3E" />
+    <script type="module" crossorigin src="./assets/index-C_yNsknh.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/CanvasPool-dwPUnWQ4.js">
+    <link rel="modulepreload" crossorigin href="./assets/canvasUtils-CXI_ysHv.js">
+    <link rel="modulepreload" crossorigin href="./assets/RenderTargetSystem-DjqksETX.js">
+    <link rel="modulepreload" crossorigin href="./assets/getTextureBatchBindGroup-BLrx3Rvi.js">
+    <link rel="modulepreload" crossorigin href="./assets/getTexelRangeRects-DySdHJUp.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-B6tvguzx.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="vignette"></div>
+
+    <div id="hud">
+      <div class="bar hp"><div class="fill" id="hp-fill"></div><div class="barrier" id="barrier-fill"></div><span id="hp-text"></span></div>
+      <div class="bar ash"><div class="fill" id="ash-fill"></div><span id="ash-text"></span></div>
+      <div class="bar cargo"><div class="fill" id="cargo-fill"></div><span id="cargo-text"></span></div>
+      <div class="bar dodge"><div class="fill" id="dodge-fill"></div><span>翻滾</span></div>
+      <div class="bar xp"><div class="fill" id="xp-fill"></div><span id="xp-text"></span></div>
+      <div id="medkits"></div>
+      <div id="art-slots" title="術式槽"></div>
+      <div id="fuling-slots" title="符靈自動槽"></div>
+      <div class="stats">
+        <span id="time">00:00</span> · 擊殺 <b id="kills">0</b> · 怪物 <b id="enemies">0</b> ·
+        念霧 <b id="threat">0</b> · <span id="fps"></span> FPS
+      </div>
+    </div>
+
+    <div id="team">
+      <div id="command"></div>
+      <div id="team-list"></div>
+      <ul id="mission" data-title="任務"></ul>
+    </div>
+    <div id="zone-name"></div>
+    <div id="prompt"></div>
+    <canvas id="minimap" width="200" height="147"></canvas>
+    <div id="sys-toast"></div>
+
+    <div id="fuling-toast"></div>
+    <div id="weapon-hud">
+      <div id="loadout-label"></div>
+      <div class="weapon-row"><span><b id="weapon-name"></b> <small id="other-weapon"></small></span><span id="phase-label"></span></div>
+      <div id="attack-name"></div>
+      <div id="heavy-meter" title="主攻命中累積，滿了自動放重擊"></div>
+      <div id="frame-bar">
+        <i id="seg-windup"></i><i id="seg-active"></i><i id="seg-recovery"></i>
+        <div id="frame-cursor"></div>
+      </div>
+    </div>
+    <div id="help">WASD 移動　空白 閃避　Q 換兵裝　H 急救包<br>E 操縱桿　B 光暈　1～4 隊伍指令</div>
+
+    <div id="levelup" hidden></div>
+
+    <div id="outfit" hidden></div>
+
+    <div id="result" hidden></div>
+
+  </body>
+</html>

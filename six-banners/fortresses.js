@@ -1,0 +1,1 @@
+globalThis.SixFortresses={"castleFront":[24,2,609,605],"castleBack":[665,2,609,602],"towerFront":[148,607,394,575],"towerBack":[764,615,385,560]};
