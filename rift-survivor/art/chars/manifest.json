@@ -1,0 +1,90 @@
+{
+ "werebear": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 9,
+  "attack02": 13,
+  "hurt": 4,
+  "death": 4
+ },
+ "axeman": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 9,
+  "attack02": 9,
+  "hurt": 4,
+  "death": 4
+ },
+ "knight": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 7,
+  "attack02": 10,
+  "hurt": 4,
+  "death": 4
+ },
+ "priest": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 9,
+  "attack02": 6,
+  "hurt": 4,
+  "death": 4
+ },
+ "archer": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 9,
+  "attack02": 12,
+  "hurt": 4,
+  "death": 4
+ },
+ "orc": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 6,
+  "attack02": 6,
+  "hurt": 4,
+  "death": 4
+ },
+ "bat": {
+  "idle": 6,
+  "walk": 6,
+  "attack01": 6,
+  "attack02": 7,
+  "hurt": 4,
+  "death": 4
+ },
+ "werewolf": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 9,
+  "attack02": 13,
+  "hurt": 4,
+  "death": 4
+ },
+ "slime": {
+  "idle": 6,
+  "walk": 6,
+  "attack01": 6,
+  "attack02": 12,
+  "hurt": 4,
+  "death": 4
+ },
+ "armored_orc": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 7,
+  "attack02": 8,
+  "hurt": 4,
+  "death": 4
+ },
+ "elite_orc": {
+  "idle": 6,
+  "walk": 8,
+  "attack01": 7,
+  "attack02": 11,
+  "hurt": 4,
+  "death": 4
+ }
+}

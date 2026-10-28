@@ -3,15 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>接壤之楔 — 原型 M6 成長與平衡</title>
+    <title>接壤之楔</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234fd1ff'/%3E%3C/svg%3E" />
-    <script type="module" crossorigin src="./assets/index-C_yNsknh.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/CanvasPool-dwPUnWQ4.js">
-    <link rel="modulepreload" crossorigin href="./assets/canvasUtils-CXI_ysHv.js">
-    <link rel="modulepreload" crossorigin href="./assets/RenderTargetSystem-DjqksETX.js">
-    <link rel="modulepreload" crossorigin href="./assets/getTextureBatchBindGroup-BLrx3Rvi.js">
-    <link rel="modulepreload" crossorigin href="./assets/getTexelRangeRects-DySdHJUp.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-B6tvguzx.css">
+    <script type="module" crossorigin src="./assets/index-DB_IjKrZ.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/CanvasPool-BKClwQdf.js">
+    <link rel="modulepreload" crossorigin href="./assets/Filter-LPvnWTqr.js">
+    <link rel="modulepreload" crossorigin href="./assets/canvasUtils-B0HNDru7.js">
+    <link rel="modulepreload" crossorigin href="./assets/Cache-fNcOcM1E.js">
+    <link rel="modulepreload" crossorigin href="./assets/GCManagedHash-DP1i0eX7.js">
+    <link rel="modulepreload" crossorigin href="./assets/RenderTargetSystem-BEk_wegX.js">
+    <link rel="modulepreload" crossorigin href="./assets/getTextureBatchBindGroup-CIH9f4hr.js">
+    <link rel="modulepreload" crossorigin href="./assets/GraphicsContext-BCxAESEO.js">
+    <link rel="modulepreload" crossorigin href="./assets/getTexelRangeRects-OgnR6yEd.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-8kmBL7K4.css">
   </head>
   <body>
     <div id="app"></div>
@@ -28,7 +35,7 @@
       <div id="fuling-slots" title="符靈自動槽"></div>
       <div class="stats">
         <span id="time">00:00</span> · 擊殺 <b id="kills">0</b> · 怪物 <b id="enemies">0</b> ·
-        念霧 <b id="threat">0</b> · <span id="fps"></span> FPS
+        念霧 <b id="threat">0</b><span class="dbg"> · <span id="fps"></span> FPS</span>
       </div>
     </div>
 
@@ -53,7 +60,7 @@
         <div id="frame-cursor"></div>
       </div>
     </div>
-    <div id="help">WASD 移動　空白 閃避　Q 換兵裝　H 急救包<br>E 操縱桿　B 光暈　1～4 隊伍指令</div>
+    <div id="help">WASD 移動　空白 閃避　Q 換兵裝　H 急救包<br>E 操縱桿　1～4 隊伍指令　Esc 暫停</div>
 
     <div id="levelup" hidden></div>
 
