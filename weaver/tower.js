@@ -117,14 +117,14 @@ function towerBattleEnded(){
   r.lives--;r.loseLine=towerLine('lose',STORY.lose);r.fort=frac.map(x=>Math.max(x,.6));
   if(r.lives<=0){towerFinish(false);return;}
   r.stage='map';r.pending=null;r.chosen[r.floor-1]=undefined;
-  $('modalText').textContent+=' · 剩餘戰旗 '+r.lives;$('modalHint').textContent='堡壘稍作修補，重整後再戰';
+  $('modalText').textContent+=' · 剩餘機會 '+r.lives;$('modalHint').textContent='堡壘稍作修補，重整後再戰';
  }
  towerSave();
 }
 function towerWhere(){const c=towerChapter(towerRun.floor);return c<0?'序章':c<6?STORY.chapters[c].name:'環中無王';}
 function towerFinish(victory){
  towerRun.stage=victory?'story':'defeat';if(victory)towerRun.story={id:'ending',after:'victory'};towerBest=Math.max(towerBest,victory?TOWER_FLOORS:towerRun.floor-1);towerSave();
- $('modalTitle').textContent=victory?'環已重轉，征程通關！':'戰旗倒下，這輪征程到此為止。';
+ $('modalTitle').textContent=victory?'環已重轉，征程通關！':'機會用盡，這輪征途到此為止。';
  $('modalHint').textContent=victory?'六枚律種已歸位':'止步於「'+towerWhere()+'」';
 }
 function towerNextStage(){
@@ -179,8 +179,8 @@ const relicById=id=>RELICS.find(r=>r.id===id),upById=id=>HERO_UPS.find(u=>u.id==
 function towerCardHTML(id,attrs){const c=CARDS[id];return `<button class="tw-card" ${attrs} title="${c.rules}">${cardFace(c)}<em>${c.rules}</em></button>`;}
 function towerRelicHTML(r,attrs=''){return `<button class="tw-relic ${r.rarity}" ${attrs}>${relicIcon(r,56)}<strong>${r.name}</strong><em>${r.desc}</em></button>`;}
 function towerUpHTML(u,attrs=''){return `<button class="tw-relic rare" ${attrs}>${relicIcon({rarity:'rare',frame:'hex',glyph:u.glyph,tint:u.tint,src:u.src},56)}<strong>${u.name}${towerRun.ups[u.id]?' <small>→ Lv.'+(towerRun.ups[u.id]+1)+'</small>':''}</strong><em>${u.desc}</em></button>`;}
-function towerFlagSrc(){const r=towerRun;return r.heroes.length?`assets/emblems/flag-${CARDS[r.heroes[0]].faction}.webp`:'assets/emblems/badge-6.webp';}
-function towerFlags(){const r=towerRun,total=Math.max(TOWER_LIVES,r.lives);return Array.from({length:total},(_,i)=>`<img class="tw-flag ${i<r.lives?'':'lost'}" src="${towerFlagSrc()}" alt="戰旗">`).join('');}
+function towerFlagSrc(){return 'assets/emblems/badge-6.webp';}
+function towerFlags(){const r=towerRun,total=Math.max(TOWER_LIVES,r.lives);return Array.from({length:total},(_,i)=>`<img class="tw-flag ${i<r.lives?'':'lost'}" src="${towerFlagSrc()}" alt="機會">`).join('');}
 function towerRingHTML(){
  const r=towerRun,n=(r.seeds||[]).length;
  return `<div class="tw-ring" title="界律之環：已取得 ${n} / 6 枚律種"><img class="tw-ring-img" src="assets/story/ring-${n>=6?2:1}.webp" alt=""><div class="tw-seeds">${[0,1,2,3,4,5].map(i=>`<img class="tw-seed ${(r.seeds||[]).includes(i)?'lit':''}" src="assets/story/seed-${i}.webp" alt="${STORY.chapters[i].seed.name}" title="${STORY.chapters[i].seed.name}">`).join('')}</div></div>`;
@@ -212,7 +212,7 @@ function towerMe(){
  const face=id=>`<span class="tw-hface" title="${CARDS[id].name}" style="--ec:${factions[CARDS[id].faction][2]}">${artSVG(id,'portrait')}</span>`;
  return `<div class="tw-me"><div class="tw-hero"><span class="tw-hface tw-pface" title="織律者">${artSVG('story_player','portrait')}</span><div><b>${lead?'織律者 · '+lead.name.split('・')[0]+(r.heroes.length>1?' 等 '+r.heroes.length+' 位旗主':''):'織律者'}</b><small>${lead?'Lv.'+(1+heroUpCount())+' · ':'中立精靈同行 · '}${r.wins} 勝</small></div>${r.heroes.map(face).join('')}</div>
  <div class="tw-fort" title="堡壘耐久（跨場保留，營地可修復）"><small>堡壘</small>${fort}</div>
- <div class="tw-lives" title="剩餘戰旗">${towerFlags()}</div>
+ <div class="tw-lives" title="剩餘機會">${towerFlags()}</div>
  <div class="tw-relics">${r.relics.map(id=>{const x=relicById(id);return `<span title="${x.name}：${x.desc}">${relicIcon(x,32)}</span>`;}).join('')||'<small>尚無遺物</small>'}</div></div>`;
 }
 function towerHeader(){return `<div class="tw-head">${towerMe()}<button class="outline" id="twExit">離開（可續玩）</button></div>${towerRun.winLine&&towerRun.stage!=='camp'?`<p class="tw-flavor">${towerRun.winLine}</p>`:''}`;}
@@ -241,7 +241,7 @@ function towerRender(){
  const r=towerRun;let h='';
  if(r&&r.stage==='next'){towerNextStage();return;}
  if(!r){
-  h=`<div class="tw-head"><div><b>單人模式</b></div><button class="outline" id="twExit">返回</button></div><div class="tw-story has-bg" style="--bg:url(assets/story/camp.webp)"><div class="ts-body"><small class="ts-kicker">織律者</small><h2>沒有旗，也沒有牌組</h2><div class="ts-lines"><p class="ts-line" style="--i:0">你想修復這個世界。</p><p class="ts-line" style="--i:1">世界聽見了，把失律洩出的六個精靈借給你。</p><p class="ts-line" style="--i:2">先靠它們走出這座橋。旗主們也會一個一個回應你。</p></div><div class="tw-deck">${TOWER_SPIRITS.map(id=>towerCardHTML(id,'')).join('')}</div><p class="tw-sub">世界借給你八隻律靈，整副牌就是它們。兩隻特定的律靈相鄰部署，會合體成更大的律靈。你有 ${TOWER_LIVES} 面戰旗，敗北一次折一面。</p><div class="tw-actions"><button class="primary" data-start="go">出發 →</button></div></div></div>`;
+  h=`<div class="tw-head"><div><b>單人模式</b></div><button class="outline" id="twExit">返回</button></div><div class="tw-story has-bg" style="--bg:url(assets/story/camp.webp)"><div class="ts-body"><small class="ts-kicker">織律者</small><h2>你要接回這個世界</h2><div class="ts-lines"><p class="ts-line" style="--i:0">你想把停下的世界接回去。</p><p class="ts-line" style="--i:1">世界聽見了，把失律洩出的八隻律靈借給你。</p><p class="ts-line" style="--i:2">它們就是你的整副牌。先靠它們走出這座橋，各境的旗主之後會一個一個回應你。</p></div><div class="tw-deck">${TOWER_SPIRITS.map(id=>towerCardHTML(id,'')).join('')}</div><p class="tw-sub">六隻守著環上的六條律，蝕與闇是變了質的兩股律。兩隻特定的律靈相鄰部署，會合體成更大的律靈。你有 ${TOWER_LIVES} 次機會，敗北一次少一次。</p><div class="tw-actions"><button class="primary" data-start="go">出發 →</button></div></div></div>`;
  }else if(r.stage==='story'){
   h=towerStoryHTML(r.story.id);
  }else if(r.stage==='map'){
