@@ -20,6 +20,7 @@ const HEROES={
  f2_7:{metric:'allDeaths',need:8,cond:'場上累計陣亡',skill:'收魂',cd:30,desc:'立刻召喚 4 隻骷髏'},
  f3_4:{metric:'tacticSpent',need:10,cond:'累計花費於戰術與建築',skill:'符文庇佑',cd:35,desc:'全場友軍受到傷害 -35%（6 秒）'},
  f4_7:{metric:'controls',need:4,timeNeed:25,cond:'累計施加控制',skill:'盤根',cd:30,desc:'敵人較多的一條路線上的地面敵軍定身 4 秒，並在 8 秒內受傷 +25%'},
+ n_suo:{metric:'fusions',need:2,cond:'累計合體',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
  n_hero:{metric:'fusions',need:2,cond:'累計合體',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
  f5_5:{metric:'unitsDeployed',need:6,cond:'累計部署單位',skill:'戰鼓',cd:30,desc:'全場友軍攻速 +40%（8 秒）'}
 };
@@ -384,7 +385,7 @@ class Battle{
   else if(a.ability==='leech')this.restore(a,180);
   else if(a.ability==='runes'){const t=near.sort((u,v)=>u.hp/u.max-v.hp/v.max)[0];if(t)this.shieldUnit(t,160);}
   else if(a.ability==='rally')near.forEach(u=>this.buff(u,'aura',4));
-  else if(a.ability==='ringwalk'){const pool=['fuse_earth','fuse_storm','fuse_aurora','fuse_fallen'],pick=pool[Math.floor(this.random()*pool.length)];this.spawn(summons[pick],a.team,a.x+(a.team?0:0),a.y+(a.team?35:-35),1,{derived:true});const u=this.units.at(-1);if(u){u.ttl=12;this.effect('cast',u.x,u.y,a.team,50,{label:summons[pick].name,big:true});}}
+  else if(a.ability==='ringwalk'){const pool=a.artId==='n_hero'?['fuse_earth','fuse_storm','fuse_aurora','fuse_fallen']:['fuse_earth','fuse_storm','fuse_aurora'],pick=pool[Math.floor(this.random()*pool.length)];this.spawn(summons[pick],a.team,a.x+(a.team?0:0),a.y+(a.team?35:-35),1,{derived:true});const u=this.units.at(-1);if(u){u.ttl=12;this.effect('cast',u.x,u.y,a.team,50,{label:summons[pick].name,big:true});}}
   else if(a.ability==='trample')this.units.filter(u=>u.team!==a.team&&u.hp>0&&!u.tower&&u.type!=='building'&&dist(a,u)<110+u.r).forEach(u=>{this.hit(a,u,100);this.buff(u,'slow',2.5);});
   this.effect('cast',a.x,a.y,a.team,60,{label:sk.name,big:true});
  }

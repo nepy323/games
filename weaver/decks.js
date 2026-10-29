@@ -1,6 +1,6 @@
 /* 牌組三層入口：旗系精編（六旗各一套純旗牌組）／名將戰法（跨旗流派）／自由編成 */
 (()=>{
- const THEME=[0,1,2,3,4,5,6,7],BANNER=[8,9,10,11,12,13];
+ const THEME=[0,1,2,3,4,5,6,7],BANNER=[8,9,10,11,12,13,14];
  const box=document.createElement('section');box.id='presetPicker';
  box.innerHTML='<div class="pp-tabs"><button data-g="banner">旗系精編</button><button data-g="theme">名將戰法</button><button data-g="free">自由編成</button></div><div class="pp-note"></div><div class="pp-list"></div>';
  const layout=document.querySelector('#deckView .deck-layout');layout.before(box);
