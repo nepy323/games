@@ -7,7 +7,7 @@ const summons={fuse_fallen:{artId:'fuse_fallen',size:1.6,tier:'elite',multi:3,na
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=8,FUSE_RANGE=150,FUSE_COOLDOWN=6;
+const FUSE_WINDOW=8,FUSE_RANGE=150,FUSE_COOLDOWN=6,FUSE_AUTO=false; /* 合體只能由戰術「共振」觸發（FUSE_AUTO=true 為舊的相鄰自動合體） */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
@@ -100,7 +100,7 @@ class Battle{
  /* ---------- 合體 ---------- */
  noteGroup(c,team,before){
   const made=this.units.slice(before).filter(u=>u.team===team&&u.artId===c.id);if(!made.length)return;
-  const g={cardId:c.id,team,t:this.clock,ids:made.map(u=>u.id)};this.groups.push(g);this.tryFuse(g);
+  const g={cardId:c.id,team,t:this.clock,ids:made.map(u=>u.id)};this.groups.push(g);if(FUSE_AUTO)this.tryFuse(g);
  }
  groupUnits(g){return this.units.filter(u=>g.ids.includes(u.id)&&u.hp>0&&!u.dead);}
  /* 這一方能不能用某個配方：暗蝕合靈只有帶著環行者的織律者能用 */
@@ -132,8 +132,15 @@ class Battle{
    if(ga&&gb)return [ga,gb,rec];}
   return null;
  }
+ /* 場上是否有可共振的一對（不看距離）：回傳兩組的中點，AI 用 */
+ anyResonance(team){
+  for(const rec of FUSIONS){if(!this.canRecipe(team,rec))continue;
+   const ga=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.a&&this.groupUnits(g).length),gb=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.b&&this.groupUnits(g).length);
+   if(ga&&gb){const ua=this.groupUnits(ga),ub=this.groupUnits(gb),c=(us,k)=>us.reduce((s,u)=>s+u[k],0)/us.length,ax=c(ua,'x'),ay=c(ua,'y'),bx=c(ub,'x'),by=c(ub,'y');if(Math.hypot(ax-bx,ay-by)<=300)return {x:(ax+bx)/2,y:(ay+by)/2};}}
+  return null;
+ }
  /* 每 0.5 秒重新檢查窗口內的律靈（冷卻結束後仍相鄰就會合體） */
- fuseSweep(){for(const g of this.groups)if(!g.fused&&this.clock-g.t<=FUSE_WINDOW)this.tryFuse(g);this.groups=this.groups.filter(g=>!g.fused&&this.groupUnits(g).length>0);}
+ fuseSweep(){if(FUSE_AUTO)for(const g of this.groups)if(!g.fused&&this.clock-g.t<=FUSE_WINDOW)this.tryFuse(g);this.groups=this.groups.filter(g=>!g.fused&&this.groupUnits(g).length>0);}
  countPlay(team,c){const k=this.counters[team];if(c.type==='tactic'||c.type==='building')k.tacticSpent+=c.cost;if(c.type!=='tactic'){k.unitsDeployed+=c.tier==='hero'?1:(c.n||1);if(c.type==='troop')k.troopCards++;}}
  /* ---------- 英雄格 ---------- */
  heroStatus(team){
@@ -447,7 +454,8 @@ class Battle{
  ai(team,dt){
   this.aiTimers[team]-=dt;if(this.aiTimers[team]>0)return;this.aiTimers[team]=.8+this.random()*.7;
   this.aiExtras(team);
-  const p=this.players[team];const choices=p.hand.map((id,slot)=>({c:CARDS[id],slot})).filter(o=>o.c.cost<=p.energy&&!(o.c.tier==='hero'&&this.units.some(u=>u.team===team&&u.artId===o.c.id&&u.hp>0)));if(!choices.length)return;
+  const p=this.players[team];const reso=this.anyResonance(team);const choices=p.hand.map((id,slot)=>({c:CARDS[id],slot})).filter(o=>o.c.cost<=p.energy&&(o.c.effect!=='resonate'||reso)&&!(o.c.tier==='hero'&&this.units.some(u=>u.team===team&&u.artId===o.c.id&&u.hp>0)));if(!choices.length)return;
+  {const rc=choices.find(o=>o.c.effect==='resonate');if(rc&&reso){this.play(team,rc.slot,reso.x,reso.y);return;}}
   const enemies=this.units.filter(u=>u.team!==team&&u.hp>0),friends=this.units.filter(u=>u.team===team&&u.hp>0);
   const threats=enemies.filter(u=>team?u.y<320:u.y>380);
   const style=this.aiStyles[team]||'steady';

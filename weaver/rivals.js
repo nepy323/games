@@ -14,6 +14,6 @@ const RIVALS=[
  {name:'青棘',faction:4,art:'sd_9',glyph:'棘',color:'#7fb386',style:'steady',label:'沉穩',note:'林地守軍，進退有序',decks:[12,5],trait:"蒼林的巡林人，進退有序，會在你推進時側翼夾擊。",counter:"別讓兵線拉太長。守住兩路，避免被側翼包夾。"},
  {name:'裂風',faction:5,art:'sd_10',glyph:'風',color:'#d5a26d',style:'aggressive',label:'激進',note:'獸群衝鋒，不給你喘息',decks:[13,1],trait:"裂牙部族的獵手，獸群衝鋒，兩路齊發。",counter:"他的兵跑得快但耐打度低。用高生命前排扛住衝鋒，再反擊。"},
  {name:'斷牙',faction:5,art:'sd_11',glyph:'牙',color:'#c98d57',style:'aggressive',label:'激進',note:'兩路同時突擊',decks:[13,2],trait:"裂牙的先鋒，專挑你資源不足的瞬間同時突擊兩條路。",counter:"留 3 點資源當預備，別把能量花光；兩路都要有人守。"},
- {name:'環行者',faction:6,art:'n_hero',glyph:'環',color:'#8e6fd0',style:'aggressive',label:'激進',note:'律靈流，持著資源出手',hidden:true,mods:{hp:.75,dmg:.75},deck:['n_rock','n_wind','n_dew','n_fire','n_frost','n_light','n_rot','n_dark'],hero:'n_hero',trait:'只有他能讓蝕與闇合體。手上資源越多，全軍越痛，打到一定次數還會隨手丟出一隻合靈。',counter:'別讓他囤資源。壓著他打，逼他出牌；合靈只存在 12 秒，躲過去就好。'}];
+ {name:'環行者',faction:6,art:'n_hero',glyph:'環',color:'#8e6fd0',style:'aggressive',label:'激進',note:'律靈流，持著資源出手',hidden:true,mods:{hp:.75,dmg:.75},deck:['n_rock','n_dew','n_wind','n_fire','n_light','n_rot','n_dark','n_res'],hero:'n_hero',trait:'只有他能讓蝕與闇合體。手上資源越多，全軍越痛，打到一定次數還會隨手丟出一隻合靈。',counter:'別讓他囤資源。壓著他打，逼他出牌；合靈只存在 12 秒，躲過去就好。'}];
 /* 對手的牌組（預設牌組索引或自訂牌組） */
 function rivalPreset(r){return r.deck?[r.name,'',r.deck,[r.hero]]:presets[r.decks[Math.floor(Math.random()*r.decks.length)]];}

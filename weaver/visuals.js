@@ -87,16 +87,16 @@ function drawBattleEffects(){for(const f of battle.fx){const a=Math.max(0,f.life
  else{ctx.lineWidth=1.4;circle(f.x,f.y,f.r*age+2,f.type==='heal'?'#b9dca3':teamColor(f.team));if(f.type==='heal'){line(f.x-4,f.y-17,f.x+4,f.y-17,'#d5f1b8',2);line(f.x,f.y-21,f.x,f.y-13,'#d5f1b8',2);}if(f.type==='cast'&&f.label){if(f.big){ctx.font='bold '+Math.round(16*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(f.label,f.x,f.y-34-age*22);ctx.fillStyle='#ffe29a';ctx.fillText(f.label,f.x,f.y-34-age*22);}else{ctx.font=Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e2b5';ctx.fillText(f.label,f.x,f.y-25-age*15);}}}
  ctx.restore();}}
 
-/* 合體提示：選著一張律靈牌時，場上能和它合體的己方律靈亮環，旁邊標「可合體」 */
+/* 合體提示：選著「共振」時，場上每一對可合體的己方律靈之間連線，並標出要點擊的位置 */
 function drawFuseHints(){
  if(!battle||!battle.players||selected<0||mode!=='playing')return;
- const id=battle.players[0].hand[selected];if(!id)return;
- const ready=battle.clock>=battle.fuseReadyAt[0];
- const partners=SixEngine.FUSIONS.filter(f=>(f.a===id||f.b===id)&&battle.canRecipe(0,f)).map(f=>f.a===id?f.b:f.a);if(!partners.length)return;
- for(const g of battle.groups){if(g.fused||g.team!==0||!partners.includes(g.cardId)||battle.clock-g.t>8)continue;
-  const us=battle.groupUnits(g);if(!us.length)continue;
-  const x=us.reduce((s,u)=>s+u.x,0)/us.length,y=us.reduce((s,u)=>s+u.y,0)/us.length,left=Math.max(0,8-(battle.clock-g.t));
-  ctx.save();ctx.strokeStyle=ready?'#ffe29a':'#8c917e';ctx.lineWidth=2.5;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=ready?10:0;ctx.setLineDash([6,5]);
-  ctx.globalAlpha=.55+.35*Math.sin(battle.clock*6);ctx.beginPath();ctx.arc(x,y,SixEngine.FUSE_RANGE*.5,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
-  ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';const t=(ready?'可合體 ':'冷卻中 ')+Math.ceil(left)+'s';ctx.strokeText(t,x,y-SixEngine.FUSE_RANGE*.5-6);ctx.fillStyle=ready?'#ffe29a':'#b9bfa9';ctx.fillText(t,x,y-SixEngine.FUSE_RANGE*.5-6);ctx.restore();}
+ const id=battle.players[0].hand[selected];if(!id||SixEngine.CARDS[id].effect!=='resonate')return;
+ for(const rec of SixEngine.FUSIONS){if(!battle.canRecipe(0,rec))continue;
+  const ga=battle.groups.find(g=>!g.fused&&g.team===0&&g.cardId===rec.a&&battle.groupUnits(g).length),gb=battle.groups.find(g=>!g.fused&&g.team===0&&g.cardId===rec.b&&battle.groupUnits(g).length);if(!ga||!gb)continue;
+  const ua=battle.groupUnits(ga),ub=battle.groupUnits(gb),c=(us,k)=>us.reduce((s,u)=>s+u[k],0)/us.length,ax=c(ua,'x'),ay=c(ua,'y'),bx=c(ub,'x'),by=c(ub,'y'),mx=(ax+bx)/2,my=(ay+by)/2;
+  ctx.save();ctx.strokeStyle='#ffe29a';ctx.lineWidth=2.5;ctx.shadowColor='#ffe29a';ctx.shadowBlur=10;ctx.globalAlpha=.6+.35*Math.sin(battle.clock*6);ctx.setLineDash([6,5]);
+  ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.setLineDash([]);
+  for(const [x,y] of [[ax,ay],[bx,by]]){ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.stroke();}
+  ctx.beginPath();ctx.arc(mx,my,10,0,Math.PI*2);ctx.fillStyle='#ffe29a';ctx.fill();ctx.globalAlpha=1;
+  ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText('點這裡共振',mx,my-18);ctx.fillStyle='#ffe29a';ctx.fillText('點這裡共振',mx,my-18);ctx.restore();}
 }
