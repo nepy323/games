@@ -46,7 +46,7 @@ function cardFace(c,o={}){
   :`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span>`;
  const art=String(icon(c)).replace('<svg class="unit-art"','<svg preserveAspectRatio="xMidYMid slice" class="unit-art"');
  const kw=[c.charge?['衝鋒','rider']:null].filter(Boolean).map(([t,k])=>`<span class="yc-kw" title="${t}">${glyphSVG(k)}</span>`).join('');
- return `<div class="ycard ${tier} ${c.type==='building'?'bld':''}" style="--f:${f[2]}"><div class="yc-top"><strong>${c.tier==='hero'?c.name.split('・')[0]:c.name}</strong><span class="yc-cost">${c.cost}</span></div><div class="yc-art">${art}<span class="yc-crest">${SixPresentation.crest(c.faction)}</span>${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}<span class="yc-badges">${kw}<span class="yc-class" title="${c.category||effects[c.effect]||''}">${glyphSVG(classGlyphKey(c))}</span></span></div><div class="yc-stats">${stats}</div></div>`;
+ return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''}" style="--f:${f[2]}"><div class="yc-top"><strong>${c.tier==='hero'?c.name.split('・')[0]:c.name}</strong><span class="yc-cost">${c.cost}</span></div><div class="yc-art">${art}<span class="yc-crest">${SixPresentation.crest(c.faction)}</span>${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}<span class="yc-badges">${kw}<span class="yc-class" title="${c.category||effects[c.effect]||''}">${glyphSVG(classGlyphKey(c))}</span></span></div><div class="yc-stats">${stats}</div></div>`;
 }
 
 /* 長按手牌（或右鍵）開啟完整卡牌；不影響一般點選 */

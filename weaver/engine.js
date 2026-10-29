@@ -559,5 +559,5 @@ class Battle{
   }
  }
 }
-const api={Battle,FUSE_COOLDOWN,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
+const api={Battle,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
 })(globalThis);

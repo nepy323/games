@@ -8,10 +8,13 @@ const entries=SixData.cards.filter(c=>(SixScenes[c.id]||SixArt[c.id])&&(!c.aiOnl
 /* 律靈合體：兩隻特定律靈在 8 秒內相鄰部署會合體。蝕與闇不合體（它們是圖騰），不列入。 */
 {const byId=Object.fromEntries(SixData.cards.map(c=>[c.id,c])),FU={fuse_earth:{cat:'前排',line:'大地與生機纏在一起的大型律靈。'},fuse_storm:{cat:'射手',line:'烈焰被風推成一道火嵐。'},fuse_aurora:{cat:'支援',line:'冰與光折射成的極光。'}};
  for(const f of SixEngine.FUSIONS){const s=SixEngine.summons[f.into],a=byId[f.a],b=byId[f.b],m=FU[f.into];if(!s||!a||!b||!m)continue;
-  const burst=`悖靈降臨時（合靈只有一半）對周圍 ${f.burst.r} 範圍敵軍造成 ${f.burst.dmg} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
+  const W=SixEngine.FUSE_WEAK,BW=SixEngine.FUSE_BURST_WEAK,fmtB=k=>`合體瞬間對周圍 ${f.burst.r} 範圍敵軍造成 ${Math.round(f.burst.dmg*k)} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
   const traits=[s.multi?'一次可攻擊 '+s.multi+' 個目標':'',s.armor?'減傷 '+Math.round(s.armor*100)+'%':'',s.regen?'每秒回復 '+s.regen+' 生命':'',s.heal?'為附近友軍回復生命':'',s.ward?'提供護盾':'',s.slowHit?'命中減速':'',s.splash?'命中點周圍濺射':'',s.airHit?'可對空':'',s.ttl?'存在 '+s.ttl+' 秒':''].filter(Boolean).join('、');
-  const at=entries.map(c=>c.faction).lastIndexOf(6)+1;entries.splice(at,0,{id:f.into,name:s.name,faction:6,type:'troop',cost:a.cost+b.cost,hp:s.hp,dmg:s.dmg,n:1,category:m.cat,tier:'elite',race:'律靈',element:'律',
-   rules:`${a.name}與${b.name}近距離先後部署會合體為較弱的合靈（本體 80%，體型較小）；打出「逆共振」獻祭任意兩組律靈，則可能召出這隻完整的悖靈（體型更大，帶不祥氣息）。${m.line}${burst}${traits}。`});}}
+  const at=entries.map(c=>c.faction).lastIndexOf(6)+1;
+  entries.splice(at,0,{id:f.into,name:s.kin+'合靈',faction:6,type:'troop',cost:a.cost+b.cost,hp:Math.round(s.hp*W),dmg:Math.round(s.dmg*W),n:1,category:m.cat,tier:'elite',race:'律靈',element:'律',
+   rules:`${a.name}與${b.name}近距離先後部署時自動合體，免費。${m.line}本體只有${s.kin}悖靈的 ${Math.round(W*100)}%，體型較小。${fmtB(BW)}${traits}。`},
+   {id:f.into,name:s.name,faction:6,type:'troop',cost:SixData.cards.find(c=>c.id==='n_res').cost,hp:s.hp,dmg:s.dmg,n:1,category:m.cat,tier:'elite',race:'悖靈',element:'律',omen:true,
+   rules:`打出「逆共振」獻祭場上任意兩組律靈，裏律降臨，隨機召出一隻悖靈（${s.kin}是其中一種）。體型更大，帶著不祥的氣息。${m.line}${fmtB(1)}${traits}。`});}}
 factions.forEach((f,i)=>filter.insertAdjacentHTML('beforeend',`<option value="${i}">${f[0]}</option>`));
 function render(){grid.innerHTML=entries.filter(c=>filter.value==='all'||c.faction===+filter.value).map(c=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${c.race||'—'} · ${c.category||'—'} · ${c.element||'物理'}</small><p>${c.rules||c.desc||''}</p></div></article>`).join('');}
 filter.onchange=render;render();
