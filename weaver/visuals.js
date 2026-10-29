@@ -19,6 +19,8 @@ function drawBattlefield(){
  }else{ctx.fillStyle='#303c31';ctx.fillRect(0,0,600,700);ctx.fillStyle='#122c30';ctx.fillRect(0,329,600,42);for(const x of [155,445]){ctx.fillStyle='#8d8c73';ctx.fillRect(x-42,320,84,60);}}
  // Subtle exact bridge edges retain readable legal crossing widths.
  ctx.strokeStyle=currentMap.tint+'55';ctx.lineWidth=1;for(const x of [155,445]){line(x-33,329,x-33,371,currentMap.tint+'44');line(x+33,329,x+33,371,currentMap.tint+'44');}
+ /* 橋頭堵塞提示：有 3 個以上單位被擋在橋上時，橋面泛起一圈暖色脈動 */
+ if(battle&&battle.units&&!reducedMotion)for(const x of [155,445]){const n=battle.units.filter(u=>u.hp>0&&u.blocked>.4&&Math.abs(u.x-x)<56).length;if(n>=3){ctx.save();ctx.globalAlpha=.25+.2*Math.sin(battle.clock*6);ctx.strokeStyle='#ffb25a';ctx.lineWidth=3;ctx.strokeRect(x-38,322,76,56);ctx.restore();}}
  const grad=ctx.createRadialGradient(300,350,170,300,350,440);grad.addColorStop(0,'#0000');grad.addColorStop(1,'#02080b85');ctx.fillStyle=grad;ctx.fillRect(0,0,600,700);
  ctx.textAlign='center';ctx.font=Math.round(9*viewScale())+'px system-ui';ctx.fillStyle='#ffdbbd99';ctx.fillText('敵軍領地',300,132);ctx.fillStyle='#dfedc899';ctx.fillText('我方領地',300,580);
 }

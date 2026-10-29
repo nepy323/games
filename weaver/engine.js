@@ -388,6 +388,9 @@ class Battle{
   }
   if(a.summon){a.spawnCool-=dt;if(a.spawnCool<=0){a.spawnCool=a.spawnEvery;this.summon(a.summon,a.team,a.x,a.y+(a.team?30:-30),a.type==='building'?2:2);}}
  }
+ /* 重量：大型單位推得動小兵，小兵推不動大型單位（橋上排隊與卡橋用） */
+ mass(u){if(u._m)return u._m;const r=Math.max(8,u.r||12);return u._m=r*r*(u.max>=1500?2.6:u.max>=800?1.6:1)*(u.tier==='hero'||u.tier==='elite'?1.3:1);}
+ onBridge(u){return !u.flying&&u.y>296&&u.y<404&&(Math.abs(u.x-155)<56||Math.abs(u.x-445)<56);}
  move(a,b,dt){
   if(this.has(a,'root'))return;
   let tx=b.x,ty=b.y;const bridge=a.x<300?155:445;
@@ -397,7 +400,15 @@ class Battle{
   }
   const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy);if(d<1)return;
   let speed=a.speed*(this.has(a,'slow')?.45:1)*Math.max(this.has(a,'speed')?1.5:1,this.has(a,'rush')?1.75:1,this.has(a,'march')?1.2:1);
-  const move=Math.min(speed*dt,d);a.x+=dx/d*move;a.y+=dy/d*move;a.travel+=move;a.walk+=move;a.moving=true;a.moveDX=dx/d;a.moveDY=dy/d;
+  let move=Math.min(speed*dt,d);
+  /* 橋上排隊：前方有明顯比自己重（1.3 倍以上）的地面單位擋著，就停下來；大型單位能當塞子（飛行單位不受影響） */
+  if(!a.flying&&this.onBridge(a)){const nx=a.x+dx/d*move,ny=a.y+dy/d*move,ma=this.mass(a);
+   for(const o of this.units){if(o===a||o.hp<=0||o.flying||o.type==='building'||o.tower)continue;
+    const dn=Math.hypot(o.x-nx,o.y-ny),dc=Math.hypot(o.x-a.x,o.y-a.y);
+    if(dn<(a.r+o.r)*.85&&dn<dc&&this.mass(o)>=ma*1.3){move=0;a.blocked=(a.blocked||0)+dt;break;}}
+  }
+  if(move>0)a.blocked=0;
+  a.x+=dx/d*move;a.y+=dy/d*move;a.travel+=move;a.walk+=move;a.moving=move>0;a.moveDX=dx/d;a.moveDY=dy/d;
   if(!a.flying&&a.walk-(a.lastDust||0)>14){a.lastDust=a.walk;this.effect(a.role==='輪'?'steam':'dust',a.x,a.y,a.team,a.max>=1700?13:7,{dx:-dx/d,dy:-dy/d,seed:a.id+a.walk,life:.55,max:.55});}
   a.angle=Math.atan2(dx,-dy);
   a.x=clamp(a.x,24,576);a.y=clamp(a.y,22,678);
@@ -482,7 +493,10 @@ class Battle{
   }
   for(let i=0;i<this.units.length;i++)for(let j=i+1;j<this.units.length;j++){
    const a=this.units[i],b=this.units[j];if(a.hp<=0||b.hp<=0||!!a.flying!==!!b.flying)continue;
-   let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=(a.r+b.r)*.72;if(d<min){if(d<.01){dx=.1;dy=.1;d=.142;}const push=(min-d)*.12;const am=a.type!=='building',bm=b.type!=='building';if(am){a.x-=dx/d*push;a.y-=dy/d*push;}if(bm){b.x+=dx/d*push;b.y+=dy/d*push;}}
+   let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=(a.r+b.r)*.72;if(d<min){if(d<.01){dx=.1;dy=.1;d=.142;}
+    const strong=this.onBridge(a)||this.onBridge(b),push=(min-d)*(strong?.4:.12),am=a.type!=='building'&&!a.tower,bm=b.type!=='building'&&!b.tower,wa=bm?(am?this.mass(b)/(this.mass(a)+this.mass(b)):1):0,wb=am?(bm?this.mass(a)/(this.mass(a)+this.mass(b)):1):0;
+    if(am){a.x-=dx/d*push*2*wa*.5*(bm?1:1);a.y-=dy/d*push*2*wa*.5;}
+    if(bm){b.x+=dx/d*push*2*wb*.5;b.y+=dy/d*push*2*wb*.5;}}
   }
   this.deaths();this.fx.forEach(f=>f.life-=dt);this.fx=this.fx.filter(f=>f.life>0);
   const cores=this.towers.filter(u=>u.core),dead=cores.filter(u=>u.hp<=0);
