@@ -27,8 +27,8 @@
  heroBox.innerHTML='<div class="hp-head"><b class="hp-title">英雄格</b><small>不占 8 張牌；算一張同勢力牌</small></div><div class="hp-row"></div><div class="hp-detail"></div>';
  const pickers=document.createElement('div');pickers.id='deckPickers';box.before(pickers);pickers.append(box,heroBox);
  function paintHero(){
-  heroBox.querySelector('.hp-row').innerHTML=Object.keys(SixEngine.HEROES).map(id=>{const c=CARDS[id],f=factions[c.faction];return `<button class="hp-av ${draftHero===id?'on':''}" data-hero="${id}" style="--f:${f[2]}" title="${c.name}"><span class="hp-face">${artSVG(id,'portrait')}</span><small>${c.name.split('・')[0]}</small></button>`;}).join('');
-  const id=draftHero&&SixEngine.HEROES[draftHero]?draftHero:Object.keys(SixEngine.HEROES)[0],H=SixEngine.HEROES[id],c=CARDS[id],f=factions[c.faction];
+  heroBox.querySelector('.hp-row').innerHTML=Object.keys(SixEngine.HEROES).filter(id=>!CARDS[id].aiOnly).map(id=>{const c=CARDS[id],f=factions[c.faction];return `<button class="hp-av ${draftHero===id?'on':''}" data-hero="${id}" style="--f:${f[2]}" title="${c.name}"><span class="hp-face">${artSVG(id,'portrait')}</span><small>${c.name.split('・')[0]}</small></button>`;}).join('');
+  const id=draftHero&&SixEngine.HEROES[draftHero]&&!CARDS[draftHero].aiOnly?draftHero:Object.keys(SixEngine.HEROES).filter(k=>!CARDS[k].aiOnly)[0],H=SixEngine.HEROES[id],c=CARDS[id],f=factions[c.faction];
   heroBox.querySelector('.hp-detail').innerHTML=`<b style="color:${f[2]}"><img class="hp-skill" src="assets/icons/skill-${id}.webp" alt="">${c.name}</b><span>登場：${H.cond} ${H.need}${H.timeNeed?'（或 '+H.timeNeed+' 秒）':''}，花 ◆${c.cost+SixEngine.HERO_SUMMON_EXTRA}</span><span>技能「${H.skill}」：${H.desc}</span>`;
  }
  heroBox.addEventListener('click',e=>{const b=e.target.closest('.hp-av');if(!b)return;draftHero=b.dataset.hero;paintHero();renderDraft();});

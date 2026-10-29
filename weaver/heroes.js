@@ -21,6 +21,7 @@ let heroPick=-1;
  window.itemBanner=itemBanner;
  const heroOf=id=>CARDS[id];
  const build=(st,items)=>{
+  const keep=bar.querySelector('#fuseChip');
   bar.innerHTML=st.map(h=>`<button class="fb-chip fb-hero" data-hero="${h.idx}" style="--ec:${factions[heroOf(h.id).faction][2]}"><span class="fb-face">${artSVG(h.id,'portrait')}<i class="fb-ring"></i><img class="fb-skill" src="assets/icons/skill-${h.id}.webp" alt=""></span><small class="fb-label"></small></button>`).join('')
    +items.map((it,i)=>{const d=SixEngine.ITEMS.find(x=>x.id===it.id);return `<button class="fb-chip fb-item" data-item="${i}" title="${d.name}：${d.desc}"><span class="fb-face"><img src="assets/relics/relic-${String(d.art).padStart(2,'0')}.webp" alt=""></span><small class="fb-label">${d.name}</small></button>`;}).join('');
  };
@@ -30,6 +31,11 @@ let heroPick=-1;
   bar.hidden=!live;if(!live){heroPick=-1;document.body.classList.remove('hero-pick');return;}
   const st=battle.heroStatus(0),items=battle.items[0],key=st.map(h=>h.id).join()+'|'+items.map(i=>i.id+i.gotAt).join();
   if(key!==sig){sig=key;build(st,items);}
+  /* 合體冷卻：整隊共用一個。亮＝可合體，轉圈＝冷卻中 */
+  const canFuse=deck.some(id=>SixEngine.FUSIONS.some(f=>f.a===id||f.b===id));
+  let fc=bar.querySelector('#fuseChip');
+  if(canFuse&&!fc){fc=document.createElement('button');fc.id='fuseChip';fc.type='button';fc.className='fb-chip fb-fuse';fc.innerHTML='<span class="fb-face"><b>合</b><i class="fb-ring"></i></span><small class="fb-label"></small>';fc.title='律靈合體：兩隻特定律靈在 8 秒內相鄰部署會合體；每次合體後全隊冷卻 '+SixEngine.FUSE_COOLDOWN+' 秒';fc.onclick=()=>toast('律靈合體：兩隻特定律靈在 8 秒內相鄰部署會合體；合體後全隊冷卻 '+SixEngine.FUSE_COOLDOWN+' 秒。');bar.prepend(fc);}
+  if(fc){const left=Math.max(0,battle.fuseReadyAt[0]-battle.clock);fc.classList.toggle('ready',left<=0);fc.style.setProperty('--p',Math.round((1-left/SixEngine.FUSE_COOLDOWN)*100)+'%');fc.querySelector('.fb-label').textContent=left>0?Math.ceil(left)+'s':'可合體';}
   bar.querySelectorAll('[data-hero]').forEach(el=>{
    const h=st[+el.dataset.hero],lab=el.querySelector('.fb-label'),ring=el.querySelector('.fb-ring');
    el.style.setProperty('--p',Math.round(h.progress*100)+'%');

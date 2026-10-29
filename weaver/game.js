@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id),{cards,factions,presets}=SixData,{Battle,CARDS}=SixEngine,cv=$('field'),ctx=cv.getContext('2d');
-const names={troop:'兵種',tactic:'戰術',building:'建築'},effects={portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
+const names={troop:'兵種',tactic:'戰術',building:'建築'},effects={resonate:'律靈共振',portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
 let legacyDeck=null;
 let deck=[...presets[0][2]],draft=[],battle,selected=-1,mode='ready',speed=1,mouse=null,filter='all',view='battle',sound=false,audioContext,lastHand='',lastLog='',uiClock=0;
 try{const saved=JSON.parse(localStorage.getItem('six-banners-deck'));if(Array.isArray(saved)&&saved.length===8&&new Set(saved).size===8&&saved.every(x=>CARDS[x])){if(saved.filter(x=>CARDS[x].tier==='hero').length<=1)deck=saved;else legacyDeck=saved;}sound=localStorage.getItem('six-banners-sound')==='1';}catch{}
@@ -62,7 +62,7 @@ function start(){
 function pause(){if(mode!=='playing')return;battle.state='paused';mode='paused';$('overlay').style.display='flex';$('modalHint').textContent='調整部署思路，準備繼續交鋒';$('modalTitle').textContent='軍令暫止';$('modalText').innerHTML='戰場已暫停。<br>繼續後，部隊將恢復交戰。';$('start').textContent='繼續作戰 →';$('resultStats').innerHTML='';$('pause').textContent='繼續';}
 function resume(){if(mode!=='paused')return;battle.state='playing';mode='playing';$('overlay').style.display='none';$('pause').textContent='暫停';}
 function endUI(){mode='ended';$('overlay').style.display='flex';$('modalTitle').textContent=battle.winner===0?'你贏下了這一局。':battle.winner===1?'這一局沒守住，再來一次。':'兩軍相持，未分勝負。';$('modalText').textContent=battle.reason+' · 敵軍：'+battle.enemyName;const s=battle.stats[0];$('resultStats').innerHTML=`施放 ${s.casts} 張卡牌　消耗 ${s.spent} 點資源<br>造成塔傷 ${Math.round(s.towerDamage)}　摧毀外塔 ${battle.score(0)}`;$('start').textContent='再次尋找對戰 →';$('modalHint').textContent='可前往「軍備與構築」調整下一場牌組';$('preset').disabled=false;$('enemyPreset').disabled=false;beep(battle.winner===0?440:110,.35);}
-function renderHand(){const p=battle.players[0];const key=p.hand.join(',')+selected;if(key===lastHand)return;lastHand=key;$('hand').innerHTML=p.hand.map((id,i)=>{const c=CARDS[id];return `<button style="--f:${factions[c.faction][2]}" data-faction="${c.faction}" class="handcard ${selected===i?'selected':''}" data-slot="${i}" aria-label="${c.name}，${c.cost} 費，${names[c.type]}">${cardFace(c,{hotkey:i+1})}</button>`;}).join('');$('hand').querySelectorAll('button').forEach((b,i)=>b.onclick=()=>selectCard(i));$('next').textContent=CARDS[p.queue[0]].name;}
+function renderHand(){const p=battle.players[0];const key=p.hand.join(',')+selected;if(key===lastHand)return;lastHand=key;$('hand').innerHTML=p.hand.map((id,i)=>{const c=CARDS[id];return `<button style="--f:${factions[c.faction][2]}" data-faction="${c.faction}" class="handcard ${selected===i?'selected':''}" data-slot="${i}" aria-label="${c.name}，${c.cost} 費，${names[c.type]}">${cardFace(c,{hotkey:i+1})}</button>`;}).join('');$('hand').querySelectorAll('button').forEach((b,i)=>b.onclick=()=>selectCard(i));$('next').textContent='隨機';}
 function selectCard(i){
  const c=CARDS[battle.players[0].hand[i]];$('detail').innerHTML=info(c);
  if(mode!=='playing'){if(mode==='ready')toast('開戰後即可部署；目前可查看卡牌資訊。');return;}
@@ -149,7 +149,7 @@ function draw(){
  }
  for(const f of battle.fields){const c=f.c;ctx.lineWidth=1.2;ctx.setLineDash([5,6]);const col=c.effect==='heal'?'#b7d7a1':c.effect==='summon'?'#c7b3e5':c.effect==='mine'?'#c1aa79':'#db9b75';circle(f.x,f.y,c.radius,col+'88');ctx.setLineDash([]);circle(f.x,f.y,c.radius,col+'10',true);if(c.effect==='bomb'||c.effect==='summon'){ctx.lineWidth=3;ctx.strokeStyle=col;ctx.beginPath();ctx.arc(f.x,f.y,c.radius,-Math.PI/2,-Math.PI/2+Math.PI*2*f.age/f.duration);ctx.stroke();}ctx.font='9px sans-serif';ctx.fillStyle=col;ctx.fillText(c.name,f.x,f.y-c.radius-6);}
  battle.towers.forEach(drawFortress);[...battle.units].sort((a,b)=>Number(!!a.flying)-Number(!!b.flying)||a.y-b.y).forEach(drawAnimatedUnit);
- drawProjectiles();drawBattleEffects();drawWeather();ctx.restore();
+ drawFuseHints(); drawProjectiles();drawBattleEffects();drawWeather();ctx.restore();
 }
 initVisualUI();newLobby();$('detail').innerHTML='';let last=performance.now();function loop(now){let dt=Math.min(.06,(now-last)/1000);last=now;if(mode==='playing'){for(let i=0;i<speed;i++)battle.step(dt);if(battle.state==='ended')endUI();}uiClock+=dt;if(uiClock>.1){updateUI();uiClock=0;}if(view==='battle')draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
 // Read-only access for prototype diagnostics.

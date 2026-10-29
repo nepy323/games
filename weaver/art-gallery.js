@@ -1,9 +1,10 @@
 /* 圖鑑：每個單位只呈現一張卡面，加上基本資料與說明。 */
-const names={troop:'兵種',tactic:'戰術',building:'建築'},factions=SixData.factions,effects={portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
+const names={troop:'兵種',tactic:'戰術',building:'建築'},factions=SixData.factions,effects={resonate:'律靈共振',portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
 let serial=0;
 const scene=c=>{const a=SixScenes[c.id];if(!a){const art=SixArt[c.id];if(!art)return '';const[x,y,w,h]=art.portrait,id='c'+serial++;return `<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 ${w} ${h}"><defs><clipPath id="${id}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${id})"><image href="${art.src}" x="${-x}" y="${-y}" width="${art.width}" height="${art.height}"/></g></svg>`;}const id='s'+serial++;return `<svg class="scene-art" preserveAspectRatio="xMidYMid slice" viewBox="0 0 100 100"><defs><clipPath id="${id}"><rect width="100" height="100"/></clipPath></defs><g clip-path="url(#${id})"><image preserveAspectRatio="none" href="${a.src}" x="${-a.col*100}" y="${-a.row*100}" width="${(a.cols||3)*100}" height="${(a.rows||4)*100}"/></g></svg>`;};
 const icon=scene;
-const entries=SixData.cards.filter(c=>SixScenes[c.id]||SixArt[c.id]);
+let cleared0=false;try{cleared0=localStorage.getItem('six-banners-cleared')==='1';}catch{}
+const entries=SixData.cards.filter(c=>(SixScenes[c.id]||SixArt[c.id])&&(!c.aiOnly||cleared0));
 /* 律靈合體：兩隻特定律靈在 8 秒內相鄰部署會合體。蝕與闇不合體（它們是圖騰），不列入。 */
 {const byId=Object.fromEntries(SixData.cards.map(c=>[c.id,c])),FU={fuse_earth:{cat:'前排',line:'大地與生機纏在一起的大型律靈。'},fuse_storm:{cat:'射手',line:'烈焰被風推成一道火嵐。'},fuse_aurora:{cat:'支援',line:'冰與光折射成的極光。'}};
  for(const f of SixEngine.FUSIONS){const s=SixEngine.summons[f.into],a=byId[f.a],b=byId[f.b],m=FU[f.into];if(!s||!a||!b||!m)continue;
@@ -17,7 +18,7 @@ filter.onchange=render;render();
 
 const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};
 const rvCard=r=>`<article class="rv" style="--ec:${r.color}"><span class="face">${rvFace(r.art)}</span><div><b>${r.name}</b><span class="tag">${r.label}</span><p>${r.trait}</p><p class="ct">對策：${r.counter}</p><p class="dk">常用牌組：${(r.decks||[]).map(i=>SixData.presets[i]?SixData.presets[i][0]:'').filter(Boolean).join('、')}</p></div></article>`;
-document.getElementById('rivals').innerHTML=SixData.factions.map((f,fi)=>{const L=RIVALS.filter(r=>r.faction===fi);return L.length?`<h2 class="rv-fac" style="--fc:${f[2]}"><img src="assets/emblems/badge-${fi}.webp" alt="">${f[0]}<small>${L.length} 位</small></h2><div class="rv-grid">${L.map(rvCard).join('')}</div>`:'';}).join('');
+document.getElementById('rivals').innerHTML=SixData.factions.map((f,fi)=>{const L=RIVALS.filter(r=>r.faction===fi&&(!r.hidden||cleared0));return L.length?`<h2 class="rv-fac" style="--fc:${f[2]}"><img src="assets/emblems/badge-${fi}.webp" alt="">${f[0]}<small>${L.length} 位</small></h2><div class="rv-grid">${L.map(rvCard).join('')}</div>`:'';}).join('');
 
 document.getElementById('gtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.t;
  document.querySelectorAll('#gtabs button').forEach(x=>x.classList.toggle('on',x===b));
@@ -58,7 +59,7 @@ const pool=(t,a)=>`<details class="pool"><summary>${esc(t)}（${a.length}）</su
 /* 勢力介紹：用徽章 */
 (()=>{const F=SixData.factions,B=SixEngine.BANNERS,C=SixData.cards;
  document.getElementById('factions').innerHTML=`<h2>七個勢力 <small>同一勢力的牌湊到 2、4、6 張，啟動旗印加成</small></h2>`+F.map((f,i)=>{
-  const mine=C.filter(c=>c.faction===i),hero=mine.filter(c=>c.tier==='hero').map(c=>c.name.split('・')[0]),elite=mine.filter(c=>c.tier==='elite').map(c=>c.name);
+  const mine=C.filter(c=>c.faction===i&&(!c.aiOnly||cleared0)),hero=mine.filter(c=>c.tier==='hero').map(c=>c.name.split('・')[0]),elite=mine.filter(c=>c.tier==='elite').map(c=>c.name);
   const b=B[i];
   return `<article class="fac" style="--fc:${f[2]}"><img class="bd" src="assets/emblems/badge-${i}.webp" alt="" loading="lazy"><div><h3>${esc(f[0])}<small>${esc(f[1])}</small></h3>
   <p class="nm">${mine.length} 張牌${hero.length?'　英雄：'+esc(hero.join('、')):''}${elite.length?'　精英：'+esc(elite.join('、')):''}</p>

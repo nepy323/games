@@ -13,25 +13,30 @@
 
  /* 快速模擬兩位織律者對戰，回傳勝者（0＝A、1＝B） */
  function simulate(a,b){
-  const da=presets[a.decks[Math.floor(Math.random()*a.decks.length)]][2],db=presets[b.decks[Math.floor(Math.random()*b.decks.length)]][2];
-  const g=new Battle(da,db,Math.floor(Math.random()*1e9),{aiStyles:[a.style,b.style],shuffle:true,items:true});g.auto=[true,true];
+  const pa=rivalPreset(a),pb=rivalPreset(b);
+  const g=new Battle(pa[2],pb[2],Math.floor(Math.random()*1e9),{aiStyles:[a.style,b.style],shuffle:true,items:true,heroes:[pa[3]||[],pb[3]||[]]});if(a.mods)g.teamMods[0]=a.mods;if(b.mods)g.teamMods[1]=b.mods;g.auto=[true,true];
   for(let n=0;n<4805&&g.state==='playing';n++)g.step(.05);
   return g.winner===0?0:g.winner===1?1:(Math.random()<.5?0:1);
  }
  function newRun(){
   const rivals=shuffle(RIVALS.map((_,i)=>i)).slice(0,7);
-  run={field:['me',...rivals],round:0,rounds:[],over:false,place:'',pending:null};
+  run={field:['me',...rivals],round:0,rounds:[],over:false,place:'',pending:null,poss:[],possR:-1};
   /* rounds[r] = 該輪勝者名單；field 就是第 0 輪的參賽者，順序即籤位 */
   save(KEY,run);
  }
  const current=()=>run.rounds.length?run.rounds[run.rounds.length-1]:run.field;
+ /* 降靈：每一輪有機會讓一位參賽者被環行者附身（牌組換成律靈流、帶環行者） */
+ const ghost=()=>RIVALS.find(r=>r.hidden);
+ function ensurePoss(){if(!run||run.over)return;const r=run.rounds.length;if(run.possR===r)return;run.possR=r;run.poss=[];
+  const others=current().filter(i=>i!=='me');if(others.length&&Math.random()<.3)run.poss=[others[Math.floor(Math.random()*others.length)]];save(KEY,run);}
+ const asRival=i=>(run&&run.poss&&run.poss.includes(i))?ghost():rv(i);
  const myOpponent=()=>{const cur=current(),i=cur.indexOf('me');return cur[i%2===0?i+1:i-1];};
  function finishRound(myWon){
   const cur=current(),next=[];
   for(let i=0;i<cur.length;i+=2){
    const a=cur[i],b=cur[i+1];
    if(a==='me'||b==='me'){next.push(myWon?'me':(a==='me'?b:a));}
-   else next.push(simulate(rv(a),rv(b))===0?a:b);
+   else next.push(simulate(asRival(a),asRival(b))===0?a:b);
   }
   run.rounds.push(next);
   const r=run.rounds.length; // 已完成輪數
@@ -55,13 +60,13 @@
    for(let k=0;k<n;k++){
     const id=list?list[k]:undefined,lost=cols[r+1]&&id!==undefined&&!cols[r+1].includes(id);
     const fresh=anim&&r===nc,prev=anim&&r===nc-1;
-    h+=id===undefined?'<div class="cp-slot ghost"><b>？</b></div>':`<div class="cp-slot ${id==='me'?'me':''} ${lost?'out':''} ${fresh?'reveal':''} ${fresh&&id==='me'?'adv':''} ${prev&&lost?'fade':''} ${prev&&id==='me'&&lost?'lose':''}" style="${fresh?'animation-delay:'+(.5+k*.25)+'s':prev&&lost?'animation-delay:.1s':''}">${face(id)}<b>${nm(id)}</b></div>`;
+    h+=id===undefined?'<div class="cp-slot ghost"><b>？</b></div>':`<div class="cp-slot ${id==='me'?'me':''} ${lost?'out':''} ${fresh?'reveal':''} ${fresh&&id==='me'?'adv':''} ${prev&&lost?'fade':''} ${prev&&id==='me'&&lost?'lose':''} ${r===nc&&id!=='me'&&run.poss&&run.poss.includes(id)?'poss':''}" style="${fresh?'animation-delay:'+(.5+k*.25)+'s':prev&&lost?'animation-delay:.1s':''}">${face(id)}<b>${nm(id)}</b></div>`;
    }
    h+='</div>';
   }
   return h+'</div>';
  }
- function show(msg,anim){
+ function show(msg,anim){ensurePoss();
   const c=rec(),r=run?run.rounds.length:0;let body;
   if(!run){
    body=`<p class="cp-lead">8 位織律者，單淘汰。籤表一開始就公開，你要一路打到決賽。輸了就出局。</p><p class="cp-rec">紀錄　冠軍 ${c.champ}　亞軍 ${c.runner}　四強 ${c.top4}　八強 ${c.top8}　參賽 ${c.runs} 次</p><div class="cp-actions"><button class="primary" id="cpNew">報名參賽</button></div>`;
@@ -69,7 +74,7 @@
    body=`${bracketHTML(anim)}${anim?`<div class="cp-banner ${anim.won?'up':'down'}">${run.place==='冠軍'?'冠軍！':anim.won?'晉級 '+ROUNDS[run.rounds.length]+'！':'出局'}</div>`:''}<p class="cp-result ${run.place==='冠軍'?'win':''}">${run.place==='冠軍'?'你是這屆盃賽的冠軍。':'你止步於'+run.place+'。'}</p><p class="cp-rec">紀錄　冠軍 ${c.champ}　亞軍 ${c.runner}　四強 ${c.top4}　八強 ${c.top8}　參賽 ${c.runs} 次</p><div class="cp-actions"><button class="primary" id="cpNew">再報名一次</button><button class="cp-link" id="cpBack">回大廳</button></div>`;
   }else{
    const o=myOpponent(),rr=rv(o);
-   body=`${bracketHTML(anim)}${anim?`<div class="cp-banner up">晉級 ${ROUNDS[run.rounds.length]}！</div>`:''}${msg?`<p class="cp-msg">${msg}</p>`:''}<div class="cp-next" style="--ec:${rr.color}">${face(o)}<div><small>${ROUNDS[r]} 對手</small><b>${rr.name}</b><p>${rr.trait}</p><p class="ct">對策：${rr.counter}</p></div></div><p class="cp-hint">每一輪之間可以到「軍備與構築」調整牌組。</p><div class="cp-actions"><button class="primary" id="cpGo">開始 ${ROUNDS[r]}</button><button class="cp-link" id="cpBack">回大廳（進度保留）</button></div>`;
+   body=`${bracketHTML(anim)}${anim?`<div class="cp-banner up">晉級 ${ROUNDS[run.rounds.length]}！</div>`:''}${msg?`<p class="cp-msg">${msg}</p>`:''}<div class="cp-next" style="--ec:${rr.color}">${face(o)}<div><small>${ROUNDS[r]} 對手</small><b>${rr.name}</b><p>${rr.trait}</p><p class="ct">對策：${rr.counter}</p>${run.poss&&run.poss.includes(o)?'<p class="cp-omen">他身上，有一股不屬於他的氣息。</p>':''}</div></div><p class="cp-hint">每一輪之間可以到「軍備與構築」調整牌組。</p><div class="cp-actions"><button class="primary" id="cpGo">開始 ${ROUNDS[r]}</button><button class="cp-link" id="cpBack">回大廳（進度保留）</button></div>`;
   }
   panel.innerHTML=`<div class="cp-box"><h2>盃賽</h2>${body}</div>`;panel.hidden=false;document.body.classList.add('cup-open');
   const g=id=>document.getElementById(id);
@@ -82,14 +87,15 @@
  /* ---------- 對戰 ---------- */
  let active=false;
  function startMatch(){
-  const o=myOpponent(),rr=rv(o),enemy=presets[rr.decks[Math.floor(Math.random()*rr.decks.length)]];
+  const o=myOpponent(),rr=rv(o),pos=run.poss&&run.poss.includes(o),enemy=rivalPreset(pos?ghost():rr);
   close();active=true;
-  battle=new Battle(deck,enemy[2],Date.now(),{aiStyles:['steady',rr.style],shuffle:true,heroes:[[heroSlot],enemy[3]||[]],items:true});
-  battle.state='ready';battle.enemyName=rr.name;resetVisuals();lastHand='';lastLog='';selected=-1;
+  battle=new Battle(deck,enemy[2],Date.now(),{aiStyles:['steady',pos?'aggressive':rr.style],shuffle:true,heroes:[[heroSlot],enemy[3]||[]],items:true});
+  if(pos&&ghost().mods)battle.teamMods[1]=ghost().mods;else if(rr.mods)battle.teamMods[1]=rr.mods;
+  battle.state='ready';battle.enemyName=rr.name+(pos?'（降靈）':'');resetVisuals();lastHand='';lastLog='';selected=-1;
   $('opponentCard').innerHTML='<span class="opp-face" style="--ec:'+rr.color+'">'+portrait(rr)+'</span><strong>'+rr.name+' · '+rr.label+'</strong><small>'+rr.note+'</small>';
   renderHand();updateUI();mode='ready';
   $('watch').checked=false;$('mapChoice').value='random';speed=1;$('speed').textContent='1×';
-  launchBattle();toast(ROUNDS[run.rounds.length]+' · 對手：'+rr.name);
+  launchBattle();toast(pos?'降靈！'+rr.name+' 被環行者附身了':ROUNDS[run.rounds.length]+' · 對手：'+rr.name);
  }
  /* 結束畫面的主按鈕：盃賽中回到賽程，不是再找一場 */
  const origFind=$('start').onclick;

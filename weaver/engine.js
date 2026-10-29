@@ -3,14 +3,15 @@
 const D=typeof module!=='undefined'?require('./cards.js'):root.SixData;
 const CARDS=Object.fromEntries(D.cards.map(c=>[c.id,c]));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const summons={fuse_earth:{artId:'fuse_earth',size:1.6,tier:'elite',multi:3,name:'地脈靈',hp:1500,dmg:105,speed:26,range:30,rate:1.2,role:'岩',faction:6,armor:.25,heal:30,regen:10},fuse_storm:{artId:'fuse_storm',size:1.5,tier:'elite',multi:2,name:'焰嵐靈',hp:650,dmg:150,speed:40,range:145,rate:1.5,role:'火',faction:6,splash:70,airHit:true,ttl:30},fuse_aurora:{artId:'fuse_aurora',size:1.5,tier:'elite',multi:3,name:'極光靈',hp:750,dmg:40,speed:30,range:125,rate:1.1,role:'光',faction:6,slowHit:true,airHit:true,heal:46,ward:true},spirit:{artId:"f2_4",name:"界隙靈",hp:300,dmg:12,speed:42,range:24,rate:1.3,role:"魂",faction:4,ttl:12},skel:{artId:"f2_0",name:'衍生骷髏',hp:125,dmg:35,speed:40,range:22,rate:.85,role:'骨',faction:2},thrall:{artId:"f1_0",name:'血肉僕役',hp:155,dmg:42,speed:45,range:22,rate:.8,role:'刃',faction:1},gob:{artId:"f5_0",name:'營地刀兵',hp:170,dmg:40,speed:52,range:22,rate:.8,role:'刃',faction:5},guard:{artId:"f2_3",name:'骸骨壁壘守衛',hp:1600,dmg:85,speed:25,range:28,rate:1.3,role:'盾',armor:.15,faction:2},wolf:{artId:"summon_wolf",name:'狼靈',hp:230,dmg:48,speed:65,range:23,rate:.85,role:'狼',faction:4},hawk:{artId:"summon_hawk",name:'獵鷹',hp:220,dmg:43,speed:63,range:28,rate:.85,role:'翼',faction:4,flying:true,airHit:true}};
+const summons={fuse_fallen:{artId:'fuse_fallen',size:1.6,tier:'elite',multi:3,name:'暗蝕合靈',hp:1100,dmg:80,speed:28,range:95,rate:1.2,role:'闇',faction:6,airHit:true,slowHit:true,lifesteal:.2},fuse_earth:{artId:'fuse_earth',size:1.6,tier:'elite',multi:3,name:'地脈靈',hp:1500,dmg:105,speed:26,range:30,rate:1.2,role:'岩',faction:6,armor:.25,heal:30,regen:10},fuse_storm:{artId:'fuse_storm',size:1.5,tier:'elite',multi:2,name:'焰嵐靈',hp:650,dmg:150,speed:40,range:145,rate:1.5,role:'火',faction:6,splash:70,airHit:true,ttl:30},fuse_aurora:{artId:'fuse_aurora',size:1.5,tier:'elite',multi:3,name:'極光靈',hp:750,dmg:40,speed:30,range:125,rate:1.1,role:'光',faction:6,slowHit:true,airHit:true,heal:46,ward:true},spirit:{artId:"f2_4",name:"界隙靈",hp:300,dmg:12,speed:42,range:24,rate:1.3,role:"魂",faction:4,ttl:12},skel:{artId:"f2_0",name:'衍生骷髏',hp:125,dmg:35,speed:40,range:22,rate:.85,role:'骨',faction:2},thrall:{artId:"f1_0",name:'血肉僕役',hp:155,dmg:42,speed:45,range:22,rate:.8,role:'刃',faction:1},gob:{artId:"f5_0",name:'營地刀兵',hp:170,dmg:40,speed:52,range:22,rate:.8,role:'刃',faction:5},guard:{artId:"f2_3",name:'骸骨壁壘守衛',hp:1600,dmg:85,speed:25,range:28,rate:1.3,role:'盾',armor:.15,faction:2},wolf:{artId:"summon_wolf",name:'狼靈',hp:230,dmg:48,speed:65,range:23,rate:.85,role:'狼',faction:4},hawk:{artId:"summon_hawk",name:'獵鷹',hp:220,dmg:43,speed:63,range:28,rate:.85,role:'翼',faction:4,flying:true,airHit:true}};
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=8,FUSE_RANGE=150;
+const FUSE_WINDOW=8,FUSE_RANGE=150,FUSE_COOLDOWN=6;
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
- {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}}];
+ {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
+ {a:'n_rot',b:'n_dark',into:'fuse_fallen',burst:{dmg:200,r:120,slow:2},dark:true}];
 /* 英雄格：英雄不在牌組內，累積條件達成後花資源（原費用 +1）登場；登場後有主動技（冷卻）。 */
 const HERO_SUMMON_EXTRA=1,HERO_RESPAWN=40;
 const HEROES={
@@ -19,6 +20,7 @@ const HEROES={
  f2_7:{metric:'allDeaths',need:8,cond:'場上累計陣亡',skill:'收魂',cd:30,desc:'立刻召喚 4 隻骷髏'},
  f3_4:{metric:'tacticSpent',need:10,cond:'累計花費於戰術與建築',skill:'符文庇佑',cd:35,desc:'全場友軍受到傷害 -35%（6 秒）'},
  f4_7:{metric:'controls',need:4,timeNeed:25,cond:'累計施加控制',skill:'盤根',cd:30,desc:'敵人較多的一條路線上的地面敵軍定身 4 秒，並在 8 秒內受傷 +25%'},
+ n_hero:{metric:'fusions',need:2,cond:'累計合體',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
  f5_5:{metric:'unitsDeployed',need:6,cond:'累計部署單位',skill:'戰鼓',cd:30,desc:'全場友軍攻速 +40%（8 秒）'}
 };
 /* 寶物：系統隨機給的單次道具（不在牌組內），無盡鏖戰專用；數值為弱化版遺物效果 */
@@ -45,7 +47,8 @@ const SKILLS={
  leech:{name:'奪魂',need:4,desc:'恢復 180 生命'},
  runes:{name:'符文庇佑',need:5,desc:'為附近生命比例最低的友軍提供 160 護盾'},
  rally:{name:'戰鼓',need:6,desc:'附近友軍攻速提高，持續 4 秒'},
- trample:{name:'震地',need:3,desc:'周圍敵軍受到 100 傷害並減速'}
+ trample:{name:'震地',need:3,desc:'周圍敵軍受到 100 傷害並減速'},
+ ringwalk:{name:'環行',need:5,cost:3,desc:'丟出一隻隨機合靈（12 秒），花 3 點資源'}
 };
 const BANNER_NEED=[2,4,6];
 const BANNERS=[
@@ -67,7 +70,7 @@ class Battle{
   this.teamMods=[{},{}];this.seed=seed>>>0;this.clock=0;this.remaining=180;this.overtime=false;this.state='playing';this.winner=null;this.units=[];this.towers=[];this.fields=[];this.projectiles=[];this.fx=[];this.logs=[];this.id=0;this.aiTimers=[1,1.8];this.auto=[false,true];this.stats=[{spent:0,casts:0,kills:0,towerDamage:0},{spent:0,casts:0,kills:0,towerDamage:0}];
   this.players=[deck,enemy].map((d,i)=>({energy:5+((this.bannerMods[i]||{}).start||0),resonance:0,hand:d.slice(0,4),queue:d.slice(4),deck:[...d]}));
   this.heroSlots=[0,1].map(i=>(hs[i]||[]).map(id=>({id,nextAt:0,skillAt:0,boost:0})));this.heroLimit=options.heroLimit||1;
-  this.counters=[0,1].map(()=>({troopCards:0,ownDeaths:0,allDeaths:0,tacticSpent:0,controls:0,unitsDeployed:0}));
+  this.fuseReadyAt=[0,0];this.counters=[0,1].map(()=>({troopCards:0,ownDeaths:0,allDeaths:0,tacticSpent:0,controls:0,unitsDeployed:0,fusions:0}));
   this.groups=[];this.notice=[];this.items=[[],[]];this.itemsOn=!!options.items;this.nextItem=ITEM_FIRST;
   /* 洗牌：實戰開局抽牌順序隨機；測試預設不洗牌以保持可重現 */
   if(options.shuffle){for(let k=0;k<8;k++)this.random();this.players.forEach(p=>{const d=[...p.deck];for(let i=d.length-1;i>0;i--){const j=Math.floor(this.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}p.hand=d.slice(0,4);p.queue=d.slice(4);});}
@@ -89,6 +92,7 @@ class Battle{
   if(x<25||x>575||y<22||y>678)return '請點擊戰場內';
   const home=(c.type!=='tactic'&&!c.anywhere)||c.homeOnly||c.effect==='mine';
   if(home&&(team===0?y<382:y>318))return '此卡只能部署於己方半場';
+  if(c.effect==='resonate'&&!this.findResonance(team,x,y,c.radius))return '範圍內沒有可合體的律靈';
   if((c.type!=='tactic'||c.effect==='portal')&&this.all().some(t=>(t.tower||t.type==='building')&&dist(t,{x,y})<t.r+19))return '請避開現有建築';
   return '';
  }
@@ -98,18 +102,37 @@ class Battle{
   const g={cardId:c.id,team,t:this.clock,ids:made.map(u=>u.id)};this.groups.push(g);this.tryFuse(g);
  }
  groupUnits(g){return this.units.filter(u=>g.ids.includes(u.id)&&u.hp>0&&!u.dead);}
- tryFuse(g){
-  const rec=FUSIONS.find(f=>(f.a===g.cardId||f.b===g.cardId));if(!rec)return;
-  const partner=rec.a===g.cardId?rec.b:rec.a,mine=this.groupUnits(g);if(!mine.length)return;
+ /* 這一方能不能用某個配方：暗蝕合靈只有帶著環行者的織律者能用 */
+ canRecipe(team,rec){return !rec.dark||this.heroSlots[team].some(s=>s.id==='n_hero');}
+ tryFuse(g,force=false){
+  if(g.fused||(!force&&this.clock<this.fuseReadyAt[g.team]))return false;
+  const rec=FUSIONS.find(f=>(f.a===g.cardId||f.b===g.cardId)&&this.canRecipe(g.team,f));if(!rec)return false;
+  const partner=rec.a===g.cardId?rec.b:rec.a,mine=this.groupUnits(g);if(!mine.length)return false;
   const cx=a=>a.reduce((s,u)=>s+u.x,0)/a.length,cy=a=>a.reduce((s,u)=>s+u.y,0)/a.length;
   const other=this.groups.find(h=>h!==g&&!h.fused&&h.team===g.team&&h.cardId===partner&&this.clock-h.t<=FUSE_WINDOW&&this.groupUnits(h).length&&Math.hypot(cx(this.groupUnits(h))-cx(mine),cy(this.groupUnits(h))-cy(mine))<=FUSE_RANGE);
-  if(!other)return;
-  const theirs=this.groupUnits(other),all=[...mine,...theirs],x=cx(all),y=cy(all);
-  for(const u of all){u.dead=true;u.hp=0;}this.units=this.units.filter(u=>!u.dead);
-  g.fused=other.fused=true;this.spawn(summons[rec.into],g.team,x,y,1,{derived:true});
-  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
-  const nm=summons[rec.into].name;this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});this.log((g.team?'敵方':'我方')+'律靈合體：'+nm);this.notice.push({team:g.team,text:'合體：'+nm});
+  if(!other)return false;
+  return this.doFuse(g,other,rec);
  }
+ doFuse(g,other,rec){
+  const mine=this.groupUnits(g),theirs=this.groupUnits(other),all=[...mine,...theirs];if(!mine.length||!theirs.length)return false;
+  const x=all.reduce((s,u)=>s+u.x,0)/all.length,y=all.reduce((s,u)=>s+u.y,0)/all.length;
+  for(const u of all){u.dead=true;u.hp=0;}this.units=this.units.filter(u=>!u.dead);
+  g.fused=other.fused=true;this.fuseReadyAt[g.team]=this.clock+FUSE_COOLDOWN;this.counters[g.team].fusions++;
+  this.spawn(summons[rec.into],g.team,x,y,1,{derived:true});
+  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
+  const nm=summons[rec.into].name;this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});this.log((g.team?'敵方':'我方')+'律靈合體：'+nm);this.notice.push({team:g.team,text:'合體：'+nm,kind:'fuse'});
+  return true;
+ }
+ /* 共振：找出範圍內可合體的一對己方律靈（忽略相鄰窗口與冷卻），回傳 [g,other,rec] */
+ findResonance(team,x,y,r){
+  const near=g=>{const us=this.groupUnits(g);return us.length&&us.some(u=>dist(u,{x,y})<=r)?us:null;};
+  for(const rec of FUSIONS){if(!this.canRecipe(team,rec))continue;
+   const ga=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.a&&near(g)),gb=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.b&&near(g));
+   if(ga&&gb)return [ga,gb,rec];}
+  return null;
+ }
+ /* 每 0.5 秒重新檢查窗口內的律靈（冷卻結束後仍相鄰就會合體） */
+ fuseSweep(){for(const g of this.groups)if(!g.fused&&this.clock-g.t<=FUSE_WINDOW)this.tryFuse(g);this.groups=this.groups.filter(g=>!g.fused&&this.groupUnits(g).length>0);}
  countPlay(team,c){const k=this.counters[team];if(c.type==='tactic'||c.type==='building')k.tacticSpent+=c.cost;if(c.type!=='tactic'){k.unitsDeployed+=c.tier==='hero'?1:(c.n||1);if(c.type==='troop')k.troopCards++;}}
  /* ---------- 英雄格 ---------- */
  heroStatus(team){
@@ -119,7 +142,7 @@ class Battle{
    const hero=this.units.find(u=>u.team===team&&u.artId===sl.id&&u.hp>0&&!u.derived);
    const onField=!!hero,cost=card.cost+HERO_SUMMON_EXTRA,wait=Math.max(0,sl.nextAt-this.clock);
    return {idx,id:sl.id,name:card.name,progress,onField,cost,wait,cond:H.cond,need:H.need,count:k[H.metric]||0,
-    ready:progress>=1&&!onField&&wait<=0,skill:H.skill,skillDesc:H.desc,skillWait:onField?Math.max(0,sl.skillAt-this.clock):0,skillReady:onField&&this.clock>=sl.skillAt};
+    ready:progress>=1&&!onField&&wait<=0,skill:H.skill,skillDesc:H.desc,skillWait:onField?Math.max(0,sl.skillAt-this.clock):0,skillReady:onField&&!H.passive&&this.clock>=sl.skillAt};
   });
  }
  playHero(team,idx,x,y){
@@ -157,6 +180,10 @@ class Battle{
   this.effect('cast',hero.x,hero.y,team,70,{label:HEROES[id].skill});
   sl.skillAt=this.clock+HEROES[id].cd;this.log((team?'敵方':'我方')+CARDS[id].name+'發動「'+HEROES[id].skill+'」');return '';
  }
+ /* 環行者：持有的資源每 1 點，己方全軍傷害 +1%（上限 +10%） */
+ ringBonus(team){return this.units.some(u=>u.team===team&&u.ability==='ringwalk'&&u.hp>0)?1+Math.min(.1,.01*Math.max(0,this.players[team].energy)):1;}
+ /* 補牌：從整副牌裡、目前不在手上的牌隨機抽一張（剛打出的牌也算候選，下一張無法預測） */
+ drawCard(p){const pool=p.deck.filter(id=>!p.hand.includes(id));return pool[Math.floor(this.random()*pool.length)];}
  /* 追趕：外塔被拆得越多，資源回復越快（每座 +25%），讓落後的一方保有翻盤空間 */
  catchUp(team){const lost=this.towers.filter(t=>t.team===team&&!t.core&&t.hp<=0).length;return 1+.25*lost;}
  /* ---------- 寶物 ---------- */
@@ -177,7 +204,7 @@ class Battle{
   else if(it==='seed')friends.forEach(u=>this.restore(u,u.max*.15));
   else if(it==='horn')friends.forEach(u=>this.buff(u,'power',6));
   else if(it==='chalice')myTowers.forEach(t=>this.restore(t,t.max*.08));
-  else if(it==='tome'){let s=0;p.hand.forEach((id,i)=>{if(CARDS[id].cost>CARDS[p.hand[s]].cost)s=i;});const out=p.hand[s],inn=p.queue.shift();if(!inn)return '沒有可換的牌';p.hand[s]=inn;p.queue.push(out);}
+  else if(it==='tome'){let s=0;p.hand.forEach((id,i)=>{if(CARDS[id].cost>CARDS[p.hand[s]].cost)s=i;});const inn=this.drawCard(p);if(!inn)return '沒有可換的牌';p.hand[s]=inn;}
   else if(it==='tusk'){const t=this.towers.filter(t=>t.team!==team&&!t.core&&t.hp>0).sort((a,b)=>b.hp-a.hp)[0]||this.towers.find(t=>t.team!==team&&t.hp>0);if(!t)return '沒有目標';this.hit({team},t,t.max*.06);this.effect('blast',t.x,t.y,team,40);}
   else if(it==='knell')this.players[1-team].energy=Math.max(0,this.players[1-team].energy-2);
   else if(it==='moth'){const t=myTowers.sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];if(t)this.restore(t,t.max*.2);}
@@ -205,8 +232,8 @@ class Battle{
   const p=this.players[team];if(!p||slot<0||slot>=p.hand.length)return '無效的牌位';
   if((p.swapAt||0)>this.clock)return '換牌冷卻中';
   if(p.energy+1e-6<SWAP_COST)return '資源不足，無法換牌';
-  const out=p.hand[slot],inn=p.queue.shift();if(!inn)return '沒有可換的牌';
-  p.hand[slot]=inn;p.queue.push(out);p.energy-=SWAP_COST;p.swapAt=this.clock+SWAP_COOLDOWN;this.stats[team].spent+=SWAP_COST;
+  const inn=this.drawCard(p);if(!inn)return '沒有可換的牌';
+  p.hand[slot]=inn;p.energy-=SWAP_COST;p.swapAt=this.clock+SWAP_COOLDOWN;this.stats[team].spent+=SWAP_COST;
   return undefined;
  }
  play(team,slot,x,y){
@@ -214,7 +241,7 @@ class Battle{
   const p=this.players[team],id=p.hand[slot],c=CARDS[id];if(!c)return '請先選卡';
   const err=this.legal(c,team,x,y);if(err)return err;
   if(p.energy+1e-6<c.cost)return '資源不足，等待回復';
-  p.energy-=c.cost;this.stats[team].spent+=c.cost;this.stats[team].casts++;this.countPlay(team,c);p.queue.push(id);p.hand[slot]=p.queue.shift();
+  p.energy-=c.cost;this.stats[team].spent+=c.cost;this.stats[team].casts++;this.countPlay(team,c);p.hand[slot]=null;p.hand[slot]=this.drawCard({deck:p.deck,hand:p.hand.filter(h=>h)});
   if(c.type==='tactic'){p.resonance=Math.min(12,p.resonance+c.cost);this.cast(c,team,x,y);}else{const before=this.units.length;this.spawn(c,team,x,y,c.n);this.noteGroup(c,team,before);if(c.zone&&c.zone.burst){const z=c.zone;for(const u of this.all().filter(v=>v.team!==team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=z.r+v.r))this.hit({team},u,z.burst,true);this.effect('blast',x,y,team,z.r);}}
   this.log((team?'敵方':'我方')+'施放 '+c.name);return '';
  }
@@ -233,6 +260,7 @@ class Battle{
  buff(u,key,duration){if((key==='slow'||key==='root')&&!u.tower&&u.type!=='building'&&this.counters&&!this.has(u,key))this.counters[1-u.team].controls++;u.buffs[key]=Math.max(u.buffs[key]||0,this.clock+duration);}
  has(u,key){return (u.buffs[key]||0)>this.clock;}
  cast(c,team,x,y){
+  if(c.effect==='resonate'){const f=this.findResonance(team,x,y,c.radius);if(f)this.doFuse(f[0],f[1],f[2]);return;}
   this.effect('cast',x,y,team,c.radius,{label:c.name});
   if(c.effect==='portal'){this.spawn({name:c.name,artId:'x_portal',type:'building',hp:800,dmg:0,range:0,speed:0,rate:1,duration:12,portal:true,portalWave:0,portalAt:this.clock,role:'門',faction:4},team,x,y);this.portalStep(this.units.at(-1));return;}
   if(['bomb','summon'].includes(c.effect)){this.fields.push({c,team,x,y,age:0,tick:0,duration:c.delay||1});return;}
@@ -293,7 +321,7 @@ class Battle{
  }
  canTarget(a,b){return !b.totem&&b.team!==a.team&&b.hp>0&&(!b.flying||a.airHit)&&(!a.siege||b.tower||b.type==='building');}
  attack(a,b,extra=false){
-  let amount=a.dmg*(this.has(a,'power')?1.3:1)*(this.has(a,'sacrifice')?1.55:1)*(this.has(a,'weak')?.65:1);
+  let amount=a.dmg*this.ringBonus(a.team)*(this.has(a,'power')?1.3:1)*(this.has(a,'sacrifice')?1.55:1)*(this.has(a,'weak')?.65:1);
   if(a.antiLarge&&b.max>=1200)amount*=a.antiLarge;
   const charged=!!(a.charge&&a.travel>=90);
   if(charged){amount*=1.8;a.travel=0;this.effect('charge',a.x,a.y,a.team,36);}
@@ -349,13 +377,14 @@ class Battle{
  abilityEffect(a){this.effect('cast',a.x,a.y,a.team,45,{label:a.abilityName});}
  /* 技能施放：先扣 1 點資源（不夠也照扣，最低 -2），再產生效果 */
  fireSkill(a,sk){
-  const p=this.players[a.team],before=p.energy;p.energy=Math.max(ENERGY_FLOOR,p.energy-SKILL_COST);
+  const p=this.players[a.team],before=p.energy;p.energy=Math.max(ENERGY_FLOOR,p.energy-(sk.cost||SKILL_COST));
   this.notice.push({team:a.team,kind:'skillcost',paid:before-p.energy,name:sk.name,unit:a.id});
   const near=this.units.filter(u=>u.team===a.team&&u.hp>0&&u.type!=='building'&&dist(a,u)<105);
   if(a.ability==='banner')near.forEach(u=>this.shieldUnit(u,120));
   else if(a.ability==='leech')this.restore(a,180);
   else if(a.ability==='runes'){const t=near.sort((u,v)=>u.hp/u.max-v.hp/v.max)[0];if(t)this.shieldUnit(t,160);}
   else if(a.ability==='rally')near.forEach(u=>this.buff(u,'aura',4));
+  else if(a.ability==='ringwalk'){const pool=['fuse_earth','fuse_storm','fuse_aurora','fuse_fallen'],pick=pool[Math.floor(this.random()*pool.length)];this.spawn(summons[pick],a.team,a.x+(a.team?0:0),a.y+(a.team?35:-35),1,{derived:true});const u=this.units.at(-1);if(u){u.ttl=12;this.effect('cast',u.x,u.y,a.team,50,{label:summons[pick].name,big:true});}}
   else if(a.ability==='trample')this.units.filter(u=>u.team!==a.team&&u.hp>0&&!u.tower&&u.type!=='building'&&dist(a,u)<110+u.r).forEach(u=>{this.hit(a,u,100);this.buff(u,'slow',2.5);});
   this.effect('cast',a.x,a.y,a.team,60,{label:sk.name,big:true});
  }
@@ -473,6 +502,7 @@ class Battle{
    if(p.energy<10)p.energy=Math.min(10,p.energy+gain);
    if(p.bank&&this.clock>=p.bank.until){p.energy+=p.bank.amount;p.bank=null;}
   });
+  if(this.clock>=(this.nextSweep||0)){this.nextSweep=this.clock+.5;this.fuseSweep();}
   if(this.itemsOn&&this.clock>=this.nextItem){this.players.forEach((_,t)=>this.grantItem(t));this.nextItem+=ITEM_EVERY;}
   for(let t=0;t<2;t++)if(this.auto[t])this.ai(t,dt);
   this.fieldsStep(dt);this.projectileStep(dt);
@@ -509,5 +539,5 @@ class Battle{
   }
  }
 }
-const api={Battle,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
+const api={Battle,FUSE_COOLDOWN,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
 })(globalThis);

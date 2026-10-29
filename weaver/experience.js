@@ -25,7 +25,7 @@ function startTowerBattle(){
  if(!testMode){$('watch').checked=false;$('mapChoice').value='random';speed=1;$('speed').textContent='1×';}
  launchBattle();toast('對手：'+choice.name+' · '+choice.label+'型');
 }
-function pickRival(){let i;do{i=Math.floor(Math.random()*commanders.length);}while(i===lastRival&&commanders.length>1);lastRival=i;return commanders[i];}
+function pickRival(){const pool=commanders.map((c,i)=>i).filter(i=>!commanders[i].hidden);let i;if(Math.random()<.08){i=commanders.findIndex(c=>c.hidden);}else do{i=pool[Math.floor(Math.random()*pool.length)];}while(i===lastRival&&pool.length>1);lastRival=i;return commanders[i];}
 function findMatch(){
  if(mode==='matching'){cancelMatch();return;}if(mode==='paused'){resume();return;}if(mode==='playing')return;
  if(mode==='ended'&&typeof towerCtx!=='undefined'&&towerCtx){towerShowPanel();return;}
@@ -34,8 +34,8 @@ function findMatch(){
  const token=++matchToken;mode='matching';document.body.classList.add('match-search');$('modalTitle').textContent='正在尋找對戰';$('modalText').textContent='正在挑選指揮官與戰場…';$('modalHint').textContent='';$('start').textContent='取消尋找';
  const schedule=(fn,ms)=>matchTimers.push(setTimeout(()=>{if(token===matchToken)fn();},ms));
  const T=typeof towerCtx!=='undefined'?towerCtx:null;const choice=T?T.commander:testMode&&$('aiStyle').value!=='random'?commanders.find(c=>c.style===$('aiStyle').value):pickRival();spinReel(commanders.indexOf(choice));
- schedule(()=>{const chosen=testMode?$('enemyPreset').value:'random';const enemy=T?['爬塔',T.node.deckName,T.node.enemy]:chosen==='random'?presets[choice.decks?choice.decks[Math.floor(Math.random()*choice.decks.length)]:Math.floor(Math.random()*presets.length)]:presets[+chosen];
- battle=new Battle(deck,enemy[2],Date.now(),T?{aiStyles:['steady',choice.style],shuffle:true,heroes:[towerBattleHeroes(),T.node.enemyHeroes||[]],heroLimit:2}:{aiStyles:['steady',choice.style],shuffle:true,heroes:[[heroSlot],enemy[3]||[]],items:true});if(T)towerApplyMods(battle);battle.state='ready';battle.enemyName=choice.name;resetVisuals();lastHand='';lastLog='';selected=-1;
+ schedule(()=>{const chosen=testMode?$('enemyPreset').value:'random';const enemy=T?['爬塔',T.node.deckName,T.node.enemy]:chosen==='random'?(choice.decks||choice.deck?rivalPreset(choice):presets[Math.floor(Math.random()*presets.length)]):presets[+chosen];
+ battle=new Battle(deck,enemy[2],Date.now(),T?{aiStyles:['steady',choice.style],shuffle:true,heroes:[towerBattleHeroes(),T.node.enemyHeroes||[]],heroLimit:2}:{aiStyles:['steady',choice.style],shuffle:true,heroes:[[heroSlot],enemy[3]||[]],items:true});if(T)towerApplyMods(battle);if(choice.mods)battle.teamMods[1]=choice.mods;battle.state='ready';battle.enemyName=choice.name;resetVisuals();lastHand='';lastLog='';selected=-1;
  renderHand();updateUI();
  },900);
  schedule(()=>{$('opponentCard').innerHTML='<span class="opp-face" style="--ec:'+choice.color+'">'+portrait(choice)+'</span><strong>'+choice.name+' · '+choice.label+'型指揮官</strong><small>'+choice.label+' · '+choice.note+'</small>';$('modalTitle').textContent='找到對手：'+choice.name;$('modalText').textContent=choice.label+'型指揮官 · '+choice.note;$('modalHint').textContent='';showEmblem(choice);},2150);

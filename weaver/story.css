@@ -246,3 +246,15 @@ body.cup-open{overflow:hidden}
 .cp-banner.up{color:#f1dfa8;text-shadow:0 0 18px #e0c27a99}.cp-banner.down{color:#ff8a78}
 @keyframes cpBanner{0%{opacity:0;transform:scale(1.6)}25%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.cp-slot.reveal,.cp-slot.adv,.cp-slot.fade,.cp-slot.lose,.cp-banner{animation:none;opacity:1}.cp-slot.fade,.cp-slot.lose{opacity:.4}}
+
+/* 合體冷卻圖示 */
+#fuseChip .fb-face{display:grid;place-items:center;background:#1b231c;border-radius:50%;border:2px solid #6d7566;position:relative}
+#fuseChip .fb-face b{font:700 17px 'Songti TC',serif;color:#9aa38f}
+#fuseChip.ready .fb-face{border-color:#ffe29a;box-shadow:0 0 12px #ffe29a88}#fuseChip.ready .fb-face b{color:#ffe29a}
+#fuseChip .fb-ring{position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#ffe29a var(--p,0%),#0000 0);-webkit-mask:radial-gradient(circle,#0000 62%,#000 64%);mask:radial-gradient(circle,#0000 62%,#000 64%)}
+#fuseChip.ready .fb-ring{display:none}
+
+/* 降靈：被附身的參賽者名牌泛紫光並閃動 */
+.cp-slot.poss{border-color:#8e6fd0;animation:cpPoss 1.4s ease-in-out infinite}
+@keyframes cpPoss{0%,100%{box-shadow:0 0 0 0 #8e6fd000}50%{box-shadow:0 0 12px 2px #8e6fd0aa}}
+.cp-omen{color:#b79af0!important;font-size:12.5px;letter-spacing:.08em}

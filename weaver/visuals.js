@@ -86,3 +86,17 @@ function drawBattleEffects(){for(const f of battle.fx){const a=Math.max(0,f.life
  else if(f.type==='blast'){ctx.lineWidth=3*a;circle(f.x,f.y,f.r*age+3,'#dfb57c');circle(f.x,f.y,Math.max(2,22*a),'#ffd695'+(a>.5?'99':'44'),true);if(!reducedMotion)for(let j=0;j<9;j++){const angle=j*2.4;circle(f.x+Math.cos(angle)*age*f.r,f.y+Math.sin(angle)*age*f.r*.6-15*age,2+3*a,'#c9b39488',true);}}
  else{ctx.lineWidth=1.4;circle(f.x,f.y,f.r*age+2,f.type==='heal'?'#b9dca3':teamColor(f.team));if(f.type==='heal'){line(f.x-4,f.y-17,f.x+4,f.y-17,'#d5f1b8',2);line(f.x,f.y-21,f.x,f.y-13,'#d5f1b8',2);}if(f.type==='cast'&&f.label){if(f.big){ctx.font='bold '+Math.round(16*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(f.label,f.x,f.y-34-age*22);ctx.fillStyle='#ffe29a';ctx.fillText(f.label,f.x,f.y-34-age*22);}else{ctx.font=Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e2b5';ctx.fillText(f.label,f.x,f.y-25-age*15);}}}
  ctx.restore();}}
+
+/* 合體提示：選著一張律靈牌時，場上能和它合體的己方律靈亮環，旁邊標「可合體」 */
+function drawFuseHints(){
+ if(!battle||!battle.players||selected<0||mode!=='playing')return;
+ const id=battle.players[0].hand[selected];if(!id)return;
+ const ready=battle.clock>=battle.fuseReadyAt[0];
+ const partners=SixEngine.FUSIONS.filter(f=>(f.a===id||f.b===id)&&battle.canRecipe(0,f)).map(f=>f.a===id?f.b:f.a);if(!partners.length)return;
+ for(const g of battle.groups){if(g.fused||g.team!==0||!partners.includes(g.cardId)||battle.clock-g.t>8)continue;
+  const us=battle.groupUnits(g);if(!us.length)continue;
+  const x=us.reduce((s,u)=>s+u.x,0)/us.length,y=us.reduce((s,u)=>s+u.y,0)/us.length,left=Math.max(0,8-(battle.clock-g.t));
+  ctx.save();ctx.strokeStyle=ready?'#ffe29a':'#8c917e';ctx.lineWidth=2.5;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=ready?10:0;ctx.setLineDash([6,5]);
+  ctx.globalAlpha=.55+.35*Math.sin(battle.clock*6);ctx.beginPath();ctx.arc(x,y,SixEngine.FUSE_RANGE*.5,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+  ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';const t=(ready?'可合體 ':'冷卻中 ')+Math.ceil(left)+'s';ctx.strokeText(t,x,y-SixEngine.FUSE_RANGE*.5-6);ctx.fillStyle=ready?'#ffe29a':'#b9bfa9';ctx.fillText(t,x,y-SixEngine.FUSE_RANGE*.5-6);ctx.restore();}
+}
