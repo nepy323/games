@@ -3,11 +3,11 @@
 const D=typeof module!=='undefined'?require('./cards.js'):root.SixData;
 const CARDS=Object.fromEntries(D.cards.map(c=>[c.id,c]));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const summons={fuse_fallen:{artId:'fuse_fallen',size:1.6,tier:'elite',multi:3,name:'暗蝕合靈',hp:1100,dmg:80,speed:28,range:95,rate:1.2,role:'闇',faction:6,airHit:true,slowHit:true,lifesteal:.2},fuse_earth:{artId:'fuse_earth',size:1.6,tier:'elite',multi:3,name:'地脈靈',hp:1500,dmg:105,speed:26,range:30,rate:1.2,role:'岩',faction:6,armor:.25,heal:30,regen:10},fuse_storm:{artId:'fuse_storm',size:1.5,tier:'elite',multi:2,name:'焰嵐靈',hp:650,dmg:150,speed:40,range:145,rate:1.5,role:'火',faction:6,splash:70,airHit:true,ttl:30},fuse_aurora:{artId:'fuse_aurora',size:1.5,tier:'elite',multi:3,name:'極光靈',hp:750,dmg:40,speed:30,range:125,rate:1.1,role:'光',faction:6,slowHit:true,airHit:true,heal:46,ward:true},spirit:{artId:"f2_4",name:"界隙靈",hp:300,dmg:12,speed:42,range:24,rate:1.3,role:"魂",faction:4,ttl:12},skel:{artId:"f2_0",name:'衍生骷髏',hp:125,dmg:35,speed:40,range:22,rate:.85,role:'骨',faction:2},thrall:{artId:"f1_0",name:'血肉僕役',hp:155,dmg:42,speed:45,range:22,rate:.8,role:'刃',faction:1},gob:{artId:"f5_0",name:'營地刀兵',hp:170,dmg:40,speed:52,range:22,rate:.8,role:'刃',faction:5},guard:{artId:"f2_3",name:'骸骨壁壘守衛',hp:1600,dmg:85,speed:25,range:28,rate:1.3,role:'盾',armor:.15,faction:2},wolf:{artId:"summon_wolf",name:'狼靈',hp:230,dmg:48,speed:65,range:23,rate:.85,role:'狼',faction:4},hawk:{artId:"summon_hawk",name:'獵鷹',hp:220,dmg:43,speed:63,range:28,rate:.85,role:'翼',faction:4,flying:true,airHit:true}};
+const summons={fuse_fallen:{artId:'fuse_fallen',size:2,ring:true,kin:'暗蝕',tier:'elite',multi:3,name:'暗蝕悖靈',hp:1100,dmg:80,speed:28,range:95,rate:1.2,role:'闇',faction:6,airHit:true,slowHit:true,lifesteal:.2},fuse_earth:{artId:'fuse_earth',size:2,ring:true,kin:'地脈',tier:'elite',multi:3,name:'地脈悖靈',hp:1200,dmg:84,speed:26,range:30,rate:1.2,role:'岩',faction:6,armor:.25,heal:30,regen:10},fuse_storm:{artId:'fuse_storm',size:1.9,ring:true,kin:'焰嵐',tier:'elite',multi:2,name:'焰嵐悖靈',hp:520,dmg:120,speed:40,range:145,rate:1.5,role:'火',faction:6,splash:70,airHit:true,ttl:30},fuse_aurora:{artId:'fuse_aurora',size:1.9,ring:true,kin:'極光',tier:'elite',multi:3,name:'極光悖靈',hp:600,dmg:32,speed:30,range:125,rate:1.1,role:'光',faction:6,slowHit:true,airHit:true,heal:46,ward:true},spirit:{artId:"f2_4",name:"界隙靈",hp:300,dmg:12,speed:42,range:24,rate:1.3,role:"魂",faction:4,ttl:12},skel:{artId:"f2_0",name:'衍生骷髏',hp:125,dmg:35,speed:40,range:22,rate:.85,role:'骨',faction:2},thrall:{artId:"f1_0",name:'血肉僕役',hp:155,dmg:42,speed:45,range:22,rate:.8,role:'刃',faction:1},gob:{artId:"f5_0",name:'營地刀兵',hp:170,dmg:40,speed:52,range:22,rate:.8,role:'刃',faction:5},guard:{artId:"f2_3",name:'骸骨壁壘守衛',hp:1600,dmg:85,speed:25,range:28,rate:1.3,role:'盾',armor:.15,faction:2},wolf:{artId:"summon_wolf",name:'狼靈',hp:230,dmg:48,speed:65,range:23,rate:.85,role:'狼',faction:4},hawk:{artId:"summon_hawk",name:'獵鷹',hp:220,dmg:43,speed:63,range:28,rate:.85,role:'翼',faction:4,flying:true,airHit:true}};
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=8,FUSE_RANGE=150,FUSE_COOLDOWN=6,FUSE_AUTO=false; /* 合體只能由戰術「共振」觸發（FUSE_AUTO=true 為舊的相鄰自動合體） */
+const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.8,FUSE_BURST_WEAK=.5; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.8、衝擊 ×0.5、共享冷卻；戰術「共振」是儀式，原數值 */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
@@ -93,7 +93,7 @@ class Battle{
   if(x<25||x>575||y<22||y>678)return '請點擊戰場內';
   const home=(c.type!=='tactic'&&!c.anywhere)||c.homeOnly||c.effect==='mine';
   if(home&&(team===0?y<382:y>318))return '此卡只能部署於己方半場';
-  if(c.effect==='resonate'&&!this.findResonance(team,x,y,c.radius))return '範圍內沒有可合體的律靈';
+  if(c.effect==='resonate'&&this.resonanceGroups(team,x,y,c.radius).length<2)return '範圍內沒有兩組可獻祭的律靈';
   if((c.type!=='tactic'||c.effect==='portal')&&this.all().some(t=>(t.tower||t.type==='building')&&dist(t,{x,y})<t.r+19))return '請避開現有建築';
   return '';
  }
@@ -114,30 +114,40 @@ class Battle{
   if(!other)return false;
   return this.doFuse(g,other,rec);
  }
- doFuse(g,other,rec){
+ doFuse(g,other,rec,full=false){
   const mine=this.groupUnits(g),theirs=this.groupUnits(other),all=[...mine,...theirs];if(!mine.length||!theirs.length)return false;
   const x=all.reduce((s,u)=>s+u.x,0)/all.length,y=all.reduce((s,u)=>s+u.y,0)/all.length;
   for(const u of all){u.dead=true;u.hp=0;}this.units=this.units.filter(u=>!u.dead);
-  g.fused=other.fused=true;this.fuseReadyAt[g.team]=this.clock+FUSE_COOLDOWN;this.counters[g.team].fusions++;
+  g.fused=other.fused=true;if(!full)this.fuseReadyAt[g.team]=this.clock+FUSE_COOLDOWN;this.counters[g.team].fusions++;
   this.spawn(summons[rec.into],g.team,x,y,1,{derived:true});
-  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
-  const nm=summons[rec.into].name;this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});this.log((g.team?'敵方':'我方')+'律靈合體：'+nm);this.notice.push({team:g.team,text:'合體：'+nm,kind:'fuse'});
+  const nu=this.units.at(-1);if(nu&&!full){nu.hp*=FUSE_WEAK;nu.max*=FUSE_WEAK;nu.dmg*=FUSE_WEAK;nu.name=nu.kin+'合靈';nu.ring=false;nu.size=(nu.size||1)*.8;}
+  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*(full?1:FUSE_BURST_WEAK),true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
+  const nm=this.units.at(-1)?.name||summons[rec.into].name;
+  if(full){this.effect('omen',x,y,g.team,150,{life:1.3,max:1.3});this.effect('cast',x,y,g.team,90,{label:'裏律降臨：'+nm,big:true});}else this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});
+  this.log((g.team?'敵方':'我方')+(full?'逆反共振，裏律降臨：':'律靈合體：')+nm);this.notice.push({team:g.team,text:(full?'裏律降臨：':'合體：')+nm,kind:'fuse'});
   return true;
  }
- /* 共振：找出範圍內可合體的一對己方律靈（忽略相鄰窗口與冷卻），回傳 [g,other,rec] */
- findResonance(team,x,y,r){
-  const near=g=>{const us=this.groupUnits(g);return us.length&&us.some(u=>dist(u,{x,y})<=r)?us:null;};
-  for(const rec of FUSIONS){if(!this.canRecipe(team,rec))continue;
-   const ga=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.a&&near(g)),gb=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.b&&near(g));
-   if(ga&&gb)return [ga,gb,rec];}
-  return null;
+ /* 共振：範圍內任意兩組己方律靈都可以被吃掉（以一次部署為一組），最靠近施放點的兩組優先 */
+ spiritIds(){return new Set(FUSIONS.flatMap(f=>[f.a,f.b]));}
+ resonanceGroups(team,x,y,r){
+  const ids=this.spiritIds(),out=[];
+  for(const g of this.groups){if(g.fused||g.team!==team||!ids.has(g.cardId))continue;
+   const us=this.groupUnits(g);if(!us.length)continue;const d=Math.min(...us.map(u=>dist(u,{x,y})));if(d<=r)out.push({g,d});}
+  return out.sort((p,q)=>p.d-q.d).map(o=>o.g);
  }
- /* 場上是否有可共振的一對（不看距離）：回傳兩組的中點，AI 用 */
+ /* 場上最靠近的兩組可共振律靈（不看施放點）：回傳兩組的中點，AI 與提示用 */
  anyResonance(team){
-  for(const rec of FUSIONS){if(!this.canRecipe(team,rec))continue;
-   const ga=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.a&&this.groupUnits(g).length),gb=this.groups.find(g=>!g.fused&&g.team===team&&g.cardId===rec.b&&this.groupUnits(g).length);
-   if(ga&&gb){const ua=this.groupUnits(ga),ub=this.groupUnits(gb),c=(us,k)=>us.reduce((s,u)=>s+u[k],0)/us.length,ax=c(ua,'x'),ay=c(ua,'y'),bx=c(ub,'x'),by=c(ub,'y');if(Math.hypot(ax-bx,ay-by)<=300)return {x:(ax+bx)/2,y:(ay+by)/2};}}
-  return null;
+  const ids=this.spiritIds(),gs=this.groups.filter(g=>!g.fused&&g.team===team&&ids.has(g.cardId)&&this.groupUnits(g).length);
+  const pos=g=>{const us=this.groupUnits(g);return {x:us.reduce((s,u)=>s+u.x,0)/us.length,y:us.reduce((s,u)=>s+u.y,0)/us.length};};
+  let best=null;
+  for(let i=0;i<gs.length;i++)for(let k=i+1;k<gs.length;k++){const a=pos(gs[i]),b=pos(gs[k]),d=Math.hypot(a.x-b.x,a.y-b.y);if(d<=300&&(!best||d<best.d))best={d,x:(a.x+b.x)/2,y:(a.y+b.y)/2,ax:a.x,ay:a.y,bx:b.x,by:b.y};}
+  return best;
+ }
+ /* 儀式完成：吃掉施放點範圍內最近的兩組，隨機生出一隻原數值的合靈；不足兩組就失效並退費 */
+ resolveResonance(f){
+  const gs=this.resonanceGroups(f.team,f.x,f.y,f.c.radius),pool=FUSIONS.filter(r=>this.canRecipe(f.team,r));
+  if(gs.length<2||!pool.length){const p=this.players[f.team];p.energy=Math.min(p.maxEnergy||10,p.energy+f.c.cost);this.effect('cast',f.x,f.y,f.team,60,{label:'逆共振失效'});return;}
+  this.doFuse(gs[0],gs[1],pool[Math.floor(this.random()*pool.length)],true);
  }
  /* 每 0.5 秒重新檢查窗口內的律靈（冷卻結束後仍相鄰就會合體） */
  fuseSweep(){if(FUSE_AUTO)for(const g of this.groups)if(!g.fused&&this.clock-g.t<=FUSE_WINDOW)this.tryFuse(g);this.groups=this.groups.filter(g=>!g.fused&&this.groupUnits(g).length>0);}
@@ -268,7 +278,7 @@ class Battle{
  buff(u,key,duration){if((key==='slow'||key==='root')&&!u.tower&&u.type!=='building'&&this.counters&&!this.has(u,key))this.counters[1-u.team].controls++;u.buffs[key]=Math.max(u.buffs[key]||0,this.clock+duration);}
  has(u,key){return (u.buffs[key]||0)>this.clock;}
  cast(c,team,x,y){
-  if(c.effect==='resonate'){const f=this.findResonance(team,x,y,c.radius);if(f)this.doFuse(f[0],f[1],f[2]);return;}
+  if(c.effect==='resonate'){this.effect('cast',x,y,team,c.radius,{label:'逆反共振'});this.fields.push({c,team,x,y,age:0,tick:0,duration:1});return;}
   this.effect('cast',x,y,team,c.radius,{label:c.name});
   if(c.effect==='portal'){this.spawn({name:c.name,artId:'x_portal',type:'building',hp:800,dmg:0,range:0,speed:0,rate:1,duration:12,portal:true,portalWave:0,portalAt:this.clock,role:'門',faction:4},team,x,y);this.portalStep(this.units.at(-1));return;}
   if(['bomb','summon'].includes(c.effect)){this.fields.push({c,team,x,y,age:0,tick:0,duration:c.delay||1});return;}
@@ -304,6 +314,7 @@ class Battle{
  fieldsStep(dt){
   for(const f of this.fields){
    const c=f.c;f.age+=dt;f.tick-=dt;
+   if(c.effect==='resonate'){if(f.age<f.duration)continue;this.resolveResonance(f);f.done=true;continue;}
    if(['bomb','summon'].includes(c.effect)){
     if(f.age<f.duration)continue;
     if(c.effect==='summon')this.summon(c.summon,f.team,f.x,f.y,c.count);

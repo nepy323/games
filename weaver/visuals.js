@@ -42,6 +42,8 @@ function drawAnimatedUnit(u){
  const a=SixArt[u.artId],im=a&&atlasImages[a.src];if(!im||!im.complete||!im.naturalWidth)return drawUnitFallback(u);
  const r=a[u.team===0?'back':'front'],tc=teamColor(u.team),large=u.max>=1700;
  const h=(u.type==='building'?72:large?66:['騎','狼','輪','獠','翼'].includes(u.role)?57:46)*viewScale()*(u.size||1),w=h*r[2]/r[3];
+ if(u.ring){ctx.save();const t=battle.clock,pulse=.5+.5*Math.sin(t*2.2+u.id);ctx.globalAlpha=.35+.25*pulse;ctx.fillStyle='#2a1038';ctx.strokeStyle='#a46ae0';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(u.x,u.y+2,h*(.62+.06*pulse),h*.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.globalAlpha=.5;ctx.strokeStyle='#e0507a';ctx.setLineDash([5,7]);ctx.lineDashOffset=-t*18;ctx.beginPath();ctx.ellipse(u.x,u.y+2,h*.8,h*.26,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  if(!reducedMotion)for(let i=0;i<6;i++){const k=(t*.45+i/6)%1;ctx.globalAlpha=(1-k)*.7;ctx.fillStyle=i%2?'#8e6fd0':'#c0406a';ctx.beginPath();ctx.arc(u.x+Math.sin(i*2.4+t*1.3)*h*.38,u.y-k*h*1.15,2.2+2*(1-k),0,Math.PI*2);ctx.fill();}ctx.restore();}
  if(u.zone){ctx.save();const zr=u.zone.r*(.97+.03*Math.sin(battle.clock*3)),left=u.totem&&u.duration?Math.max(0,u.life/u.duration):1;ctx.globalAlpha=.14+.06*left;ctx.fillStyle=u.zone.color;ctx.beginPath();ctx.ellipse(u.x,u.y+4,zr,zr*.62,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.75;ctx.strokeStyle=u.zone.color;ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.ellipse(u.x,u.y+4,zr,zr*.62,0,-Math.PI/2,-Math.PI/2+Math.PI*2*left);ctx.stroke();ctx.restore();}
  if(u.buffs&&u.team!==0&&!u.tower){const ring=[['curse','#6fae5a'],['rush','#a070e6'],['weak','#c58cf0'],['slow','#7fd0ff']].filter(([k])=>battle.has(u,k));ring.forEach(([k,col],i)=>{ctx.save();ctx.globalAlpha=.8;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(u.x,u.y+6,u.r+4+i*3,5+i*1.5,0,0,Math.PI*2);ctx.stroke();ctx.restore();});}
  const phase=u.walk*.20,flight=u.flying?10+(reducedMotion?0:Math.sin(battle.clock*4+u.id)*2.5):0;
@@ -83,20 +85,20 @@ function drawBattleEffects(){for(const f of battle.fx){const a=Math.max(0,f.life
  if(f.type==='dust'||f.type==='steam'){if(reducedMotion){ctx.restore();continue;}for(let i=0;i<4;i++){const angle=f.seed+i*2.4;ctx.fillStyle=f.type==='steam'?'#c4d1cb66':currentMap.weather==='snow'?'#dbe5e5aa':'#b7a58a77';const x=f.x+Math.cos(angle)*age*f.r+(f.dx||0)*age*9,y=f.y+Math.sin(angle)*age*f.r*.45+(f.dy||0)*age*8-age*4;ctx.beginPath();ctx.ellipse(x,y,2+age*3,1+age*2,angle,0,7);ctx.fill();}}
  else if(f.type==='impact'||f.type==='muzzle'){const col=SixPresentation.colors[f.element]||'#ffe3ad';ctx.strokeStyle=col;ctx.lineWidth=1.5;for(let i=0;i<(reducedMotion?3:7);i++){const q=i*2.4+f.x;line(f.x+Math.cos(q)*age*f.r*.4,f.y-18+Math.sin(q)*age*f.r*.4,f.x+Math.cos(q)*(3+age*f.r),f.y-18+Math.sin(q)*(3+age*f.r),col,1.4);}if(f.type==='muzzle')circle(f.x,f.y-18,5*a,'#ffe1a5',true);}
  else if(f.type==='slash'){ctx.lineWidth=2;ctx.strokeStyle='#eee3c4';ctx.beginPath();ctx.arc(f.x,f.y-15,10+age*12,f.angle-.9,f.angle+.7);ctx.stroke();}
+ else if(f.type==='omen'){ctx.save();for(let k=0;k<3;k++){const q=Math.max(0,age-k*.14);if(q<=0)continue;ctx.globalAlpha=Math.max(0,(1-q))*.8;ctx.lineWidth=3-k*.7;ctx.strokeStyle=k===1?'#e0507a':'#a46ae0';ctx.beginPath();ctx.ellipse(f.x,f.y,f.r*q+4,(f.r*q+4)*.42,0,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=Math.max(0,1-age)*.5;ctx.fillStyle='#1a0626';ctx.beginPath();ctx.ellipse(f.x,f.y,f.r*.55,f.r*.22,0,0,Math.PI*2);ctx.fill();ctx.restore();}
  else if(f.type==='blast'){ctx.lineWidth=3*a;circle(f.x,f.y,f.r*age+3,'#dfb57c');circle(f.x,f.y,Math.max(2,22*a),'#ffd695'+(a>.5?'99':'44'),true);if(!reducedMotion)for(let j=0;j<9;j++){const angle=j*2.4;circle(f.x+Math.cos(angle)*age*f.r,f.y+Math.sin(angle)*age*f.r*.6-15*age,2+3*a,'#c9b39488',true);}}
  else{ctx.lineWidth=1.4;circle(f.x,f.y,f.r*age+2,f.type==='heal'?'#b9dca3':teamColor(f.team));if(f.type==='heal'){line(f.x-4,f.y-17,f.x+4,f.y-17,'#d5f1b8',2);line(f.x,f.y-21,f.x,f.y-13,'#d5f1b8',2);}if(f.type==='cast'&&f.label){if(f.big){ctx.font='bold '+Math.round(16*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(f.label,f.x,f.y-34-age*22);ctx.fillStyle='#ffe29a';ctx.fillText(f.label,f.x,f.y-34-age*22);}else{ctx.font=Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e2b5';ctx.fillText(f.label,f.x,f.y-25-age*15);}}}
  ctx.restore();}}
 
-/* 合體提示：選著「共振」時，場上每一對可合體的己方律靈之間連線，並標出要點擊的位置 */
+/* 合體提示：選著「逆共振」時，場上每一對可合體的己方律靈之間連線，並標出要點擊的位置 */
 function drawFuseHints(){
  if(!battle||!battle.players||selected<0||mode!=='playing')return;
  const id=battle.players[0].hand[selected];if(!id||SixEngine.CARDS[id].effect!=='resonate')return;
- for(const rec of SixEngine.FUSIONS){if(!battle.canRecipe(0,rec))continue;
-  const ga=battle.groups.find(g=>!g.fused&&g.team===0&&g.cardId===rec.a&&battle.groupUnits(g).length),gb=battle.groups.find(g=>!g.fused&&g.team===0&&g.cardId===rec.b&&battle.groupUnits(g).length);if(!ga||!gb)continue;
-  const ua=battle.groupUnits(ga),ub=battle.groupUnits(gb),c=(us,k)=>us.reduce((s,u)=>s+u[k],0)/us.length,ax=c(ua,'x'),ay=c(ua,'y'),bx=c(ub,'x'),by=c(ub,'y'),mx=(ax+bx)/2,my=(ay+by)/2;
-  ctx.save();ctx.strokeStyle='#ffe29a';ctx.lineWidth=2.5;ctx.shadowColor='#ffe29a';ctx.shadowBlur=10;ctx.globalAlpha=.6+.35*Math.sin(battle.clock*6);ctx.setLineDash([6,5]);
-  ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.setLineDash([]);
-  for(const [x,y] of [[ax,ay],[bx,by]]){ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.stroke();}
-  ctx.beginPath();ctx.arc(mx,my,10,0,Math.PI*2);ctx.fillStyle='#ffe29a';ctx.fill();ctx.globalAlpha=1;
-  ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText('點這裡共振',mx,my-18);ctx.fillStyle='#ffe29a';ctx.fillText('點這裡共振',mx,my-18);ctx.restore();}
+ const r=battle.anyResonance(0);if(!r)return;
+ ctx.save();ctx.strokeStyle='#ffe29a';ctx.lineWidth=2.5;ctx.shadowColor='#ffe29a';ctx.shadowBlur=10;ctx.globalAlpha=.6+.35*Math.sin(battle.clock*6);ctx.setLineDash([6,5]);
+ ctx.beginPath();ctx.moveTo(r.ax,r.ay);ctx.lineTo(r.bx,r.by);ctx.stroke();
+ for(const [x,y] of [[r.ax,r.ay],[r.bx,r.by]]){ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.stroke();}
+ ctx.beginPath();ctx.arc(r.x,r.y,SixEngine.CARDS[id].radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+ ctx.beginPath();ctx.arc(r.x,r.y,10,0,Math.PI*2);ctx.fillStyle='#ffe29a';ctx.fill();ctx.globalAlpha=1;
+ ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText('獻祭這兩組',r.x,r.y-18);ctx.fillStyle='#ffe29a';ctx.fillText('獻祭這兩組',r.x,r.y-18);ctx.restore();
 }
