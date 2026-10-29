@@ -9,6 +9,12 @@ let heroPick=-1;
   banner.innerHTML=`<span class="hb-face">${artSVG(id,'portrait')}</span><div><small>${kind==='skill'?'發動主動技':'英雄登場'}</small><b>${c.name.split('・')[0]}</b><p>「${line}」</p></div>`;
   banner.hidden=false;banner.classList.remove('show');void banner.offsetWidth;banner.classList.add('show');clearTimeout(bt);bt=setTimeout(()=>{banner.hidden=true;},2600);};
  window.heroQuip=quip;
+ const ib=document.createElement('div');ib.id='itemBanner';ib.hidden=true;document.querySelector('.arena').appendChild(ib);let it=0;
+ const itemBanner=n=>{const d=SixEngine.ITEMS.find(x=>x.id===n.item);if(!d)return;const foe=n.team!==0;
+  ib.className=(foe?'foe ':'ally ')+'show';
+  ib.innerHTML=`<img src="assets/relics/relic-${String(d.art).padStart(2,'0')}.webp" alt=""><div><small>${foe?'敵方使用寶物':'我方使用寶物'}</small><b>${d.name}</b><p>${d.desc}</p></div>`;
+  ib.hidden=false;ib.classList.remove('show');void ib.offsetWidth;ib.classList.add('show');clearTimeout(it);it=setTimeout(()=>{ib.hidden=true;},2800);};
+ window.itemBanner=itemBanner;
  const heroOf=id=>CARDS[id];
  const build=(st,items)=>{
   bar.innerHTML=st.map(h=>`<button class="fb-chip fb-hero" data-hero="${h.idx}" style="--ec:${factions[heroOf(h.id).faction][2]}"><span class="fb-face">${artSVG(h.id,'portrait')}<i class="fb-ring"></i><img class="fb-skill" src="assets/icons/skill-${h.id}.webp" alt=""></span><small class="fb-label"></small></button>`).join('')
@@ -32,7 +38,7 @@ let heroPick=-1;
   if(items.length&&bar.dataset.newItem!==String(items.length)){bar.dataset.newItem=String(items.length);}
  };
  setInterval(update,150);
- setInterval(()=>{if(typeof battle==='undefined'||!battle||!battle.notice)return;while(battle.notice.length){const n=battle.notice.shift();if(n.team===0){toast(n.text);beep(520,.14);}}},200);
+ setInterval(()=>{if(typeof battle==='undefined'||!battle||!battle.notice)return;while(battle.notice.length){const n=battle.notice.shift();if(n.kind==='item'){itemBanner(n);beep(n.team===0?420:200,.14);}else if(n.team===0){toast(n.text);beep(520,.14);}}},200);
  bar.addEventListener('click',e=>{
   const hb=e.target.closest('[data-hero]'),ib=e.target.closest('[data-item]');
   if(hb){
@@ -41,7 +47,7 @@ let heroPick=-1;
    if(h.ready){heroPick=heroPick===idx?-1:idx;selected=-1;renderHand();$('hint').textContent=heroPick>=0?h.name+'：點擊己方半場登場（◆'+h.cost+'）':'選擇卡牌，再點擊戰場';return;}
    toast(h.wait>0?'英雄重整中，約 '+Math.ceil(h.wait)+' 秒':h.cond+' '+h.count+' / '+h.need+'，達成後可登場');return;
   }
-  if(ib){const err=battle.useItem(0,+ib.dataset.item);if(err){toast(err);beep(90);}else{toast('使用寶物');beep(360,.1);sig='';}}
+  if(ib){const err=battle.useItem(0,+ib.dataset.item);if(err){toast(err);beep(90);}else{sig='';}}
  });
  /* 點戰場：若選了英雄，改為放置英雄 */
  const baseDown=cv.onpointerdown;

@@ -7,3 +7,6 @@ const entries=SixData.cards.filter(c=>SixScenes[c.id]||SixArt[c.id]);
 factions.forEach((f,i)=>filter.insertAdjacentHTML('beforeend',`<option value="${i}">${f[0]}</option>`));
 function render(){grid.innerHTML=entries.filter(c=>filter.value==='all'||c.faction===+filter.value).map(c=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${c.race||'—'} · ${c.category||'—'} · ${c.element||'物理'}</small><p>${c.rules||c.desc||''}</p></div></article>`).join('');}
 filter.onchange=render;render();
+
+const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};
+document.getElementById('rivals').innerHTML=RIVALS.map(r=>`<article class="rv" style="--ec:${r.color}"><span class="face">${rvFace(r.art)}</span><div><b>${r.name}</b><span class="tag">${r.label}</span><p>${r.trait}</p><p class="ct">對策：${r.counter}</p><p class="dk">常用牌組：${(r.decks||[]).map(i=>SixData.presets[i]?SixData.presets[i][0]:'').filter(Boolean).join('、')}</p></div></article>`).join('');

@@ -61,3 +61,18 @@
  const sync=()=>{const h=!(typeof mode!=='undefined'&&(mode==='ended'||mode==='paused'));if(b.hidden!==h)b.hidden=h;};
  setInterval(sync,300);
 })();
+
+/* 追趕提示：外塔被拆後資源回復變快，在能量數字旁標出來 */
+(()=>{const r=document.querySelector('.control .resource');if(!r)return;const c=document.createElement('span');c.id='catchUp';c.hidden=true;r.querySelector('div').after(c);
+ setInterval(()=>{const on=typeof battle!=='undefined'&&battle&&battle.players&&battle.catchUp&&(mode==='playing'||mode==='paused');const k=on?battle.catchUp(0):1;const t=k>1?'追趕 +'+Math.round((k-1)*100)+'%':'';if(c.textContent!==t)c.textContent=t;const h=!t;if(c.hidden!==h)c.hidden=h;},400);
+})();
+
+/* 背景預先下載全部素材：第一次在有網路的地方開著，之後沒訊號也不會黑格子 */
+(()=>{if(!('serviceWorker'in navigator)||!location.protocol.startsWith('http')||location.hostname==='localhost'||location.hostname==='127.0.0.1')return;
+ const c=navigator.connection;if(c&&c.saveData)return;
+ const run=async()=>{try{await navigator.serviceWorker.ready;const list=await (await fetch('assets-list.json',{cache:'no-cache'})).json();
+  const ca=await caches.open('assets-v1');let i=0;const todo=[];for(const u of list)if(!(await ca.match(u)))todo.push(u);
+  const worker=async()=>{while(i<todo.length){const u=todo[i++];try{await fetch(u);}catch{await new Promise(r=>setTimeout(r,2000));}}};
+  await Promise.all([worker(),worker(),worker()]);}catch{}};
+ setTimeout(()=>{('requestIdleCallback'in window?requestIdleCallback:fn=>setTimeout(fn,3000))(run);},6000);
+})();

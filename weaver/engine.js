@@ -148,6 +148,8 @@ class Battle{
   this.effect('cast',hero.x,hero.y,team,70,{label:HEROES[id].skill});
   sl.skillAt=this.clock+HEROES[id].cd;this.log((team?'敵方':'我方')+CARDS[id].name+'發動「'+HEROES[id].skill+'」');return '';
  }
+ /* 追趕：外塔被拆得越多，資源回復越快（每座 +25%），讓落後的一方保有翻盤空間 */
+ catchUp(team){const lost=this.towers.filter(t=>t.team===team&&!t.core&&t.hp<=0).length;return 1+.25*lost;}
  /* ---------- 寶物 ---------- */
  grantItem(team){
   const it=ITEMS[Math.floor(this.random()*ITEMS.length)],list=this.items[team];
@@ -172,7 +174,7 @@ class Battle{
   else if(it==='moth'){const t=myTowers.sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];if(t)this.restore(t,t.max*.2);}
   else if(it==='crown')this.heroSlots[team].forEach(q=>{q.boost=Math.min(1,q.boost+.5);});
   else if(it==='foresight'){if(p.bank)return '已在儲蓄中';p.bank={amount:p.energy,until:this.clock+5};p.energy=0;}
-  list.splice(slot,1);this.effect('cast',300,team?150:550,team,60,{label:ITEMS.find(x=>x.id===it).name});return '';
+  list.splice(slot,1);this.effect('cast',300,team?150:550,team,60,{label:ITEMS.find(x=>x.id===it).name});this.notice.push({team,kind:'item',item:it});return '';
  }
  aiExtras(team){
   const p=this.players[team];
@@ -437,7 +439,7 @@ class Battle{
  step(dt){
   if(this.state!=='playing')return;dt=Math.min(dt,.1);this.clock+=dt;this.remaining=Math.max(0,this.remaining-dt);
   this.players.forEach((p,i)=>{
-   const gain=dt*(this.remaining<=60||this.overtime?1.25:.625)*((this.teamMods&&this.teamMods[i].regen)||1)*(1+((this.bannerMods&&this.bannerMods[i].regen)||0))*((p.regenUntil||0)>this.clock?p.regenMul:1);
+   const gain=dt*(this.remaining<=60||this.overtime?1.25:.625)*((this.teamMods&&this.teamMods[i].regen)||1)*(1+((this.bannerMods&&this.bannerMods[i].regen)||0))*((p.regenUntil||0)>this.clock?p.regenMul:1)*this.catchUp(i);
    if(p.energy<10)p.energy=Math.min(10,p.energy+gain);
    if(p.bank&&this.clock>=p.bank.until){p.energy+=p.bank.amount;p.bank=null;}
   });

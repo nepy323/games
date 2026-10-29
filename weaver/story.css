@@ -187,3 +187,14 @@ body.in-battle #toast{bottom:auto;top:max(96px,22dvh);background:#0d130ed9;color
 @media(max-width:1099px){body.in-battle .yc-stats span:nth-child(2){color:inherit;font-weight:600;font-size:15cqw;align-self:baseline}
 body.in-battle .yc-stats .st-hp{color:#9fd08c}body.in-battle .yc-stats .st-dur{color:#8fc7e0}
 body.in-battle .yc-stats{font-size:16cqw!important}}
+
+/* 寶物使用橫幅：我方金綠、敵方紅，一眼分辨；位置在英雄橫幅下方 */
+#itemBanner{position:absolute;left:0;right:0;top:42%;z-index:7;display:flex;align-items:center;gap:12px;padding:8px 14px;pointer-events:none;background:#0b100cee;border-top:2px solid var(--ib,#b9c88a);border-bottom:2px solid var(--ib,#b9c88a)}
+#itemBanner.ally{--ib:#b9c88a}#itemBanner.foe{--ib:#e0604d;background:#1a0c0af0}
+#itemBanner img{width:54px;height:54px;flex:none;object-fit:contain;filter:drop-shadow(0 2px 6px #000)}
+#itemBanner small{display:block;font-size:11px;letter-spacing:.2em;color:var(--ib)}
+#itemBanner b{display:block;font:700 19px/1.2 'Songti TC','Noto Serif TC',serif;color:#f1dfa8;letter-spacing:.1em}
+#itemBanner p{margin:2px 0 0;font-size:14px;line-height:1.4;color:#e4e2d7}
+#itemBanner.show{animation:ibIn .35s ease-out both,hbOut .5s 2.3s ease-in forwards}
+@keyframes ibIn{from{transform:translateY(-10px);opacity:0}to{transform:none;opacity:1}}
+#catchUp{flex:none;align-self:center;font-size:11px;color:#8fd0a0;border:1px solid #4f7a5a;border-radius:10px;padding:1px 7px;white-space:nowrap}
