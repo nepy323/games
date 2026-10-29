@@ -11,6 +11,35 @@ filter.onchange=render;render();
 const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};
 document.getElementById('rivals').innerHTML=RIVALS.map(r=>`<article class="rv" style="--ec:${r.color}"><span class="face">${rvFace(r.art)}</span><div><b>${r.name}</b><span class="tag">${r.label}</span><p>${r.trait}</p><p class="ct">對策：${r.counter}</p><p class="dk">常用牌組：${(r.decks||[]).map(i=>SixData.presets[i]?SixData.presets[i][0]:'').filter(Boolean).join('、')}</p></div></article>`).join('');
 
-document.getElementById('gtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;const r=b.dataset.t==='rivals';
+document.getElementById('gtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.t;
  document.querySelectorAll('#gtabs button').forEach(x=>x.classList.toggle('on',x===b));
- document.getElementById('grid').hidden=r;document.getElementById('rivals').hidden=!r;filter.hidden=r;if(r)window.scrollTo(0,0);};
+ document.getElementById('grid').hidden=t!=='cards';for(const id of ['rivals','relics','scenes','story'])document.getElementById(id).hidden=t!==id;filter.hidden=t!=='cards';if(t!=='cards')window.scrollTo(0,0);};
+
+/* 遺物與寶物 */
+const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const relicCard=(src,name,desc,rar)=>`<div class="gp-card"><img class="ic" src="${src}" alt=""><div><b>${esc(name)}</b>${rar?`<span class="rar ${rar}">${rar==='rare'?'稀有':'普通'}</span>`:''}<p>${esc(desc)}</p></div></div>`;
+document.getElementById('relics').innerHTML=
+ `<h2>征服旅程的遺物 <small>單人模式中帶著走，整輪有效</small></h2><div class="gp-grid">${RELICS.map(r=>relicCard(r.src,r.name,r.desc,r.rarity)).join('')}</div>`+
+ `<h2>英雄強化 <small>單人模式中替英雄升級</small></h2><div class="gp-grid">${HERO_UPS.map(r=>relicCard(r.src,r.name,r.desc)).join('')}</div>`+
+ `<h2>戰場寶物 <small>無盡鏖戰與征服旅程的戰鬥中隨機取得，單次使用</small></h2><div class="gp-grid">${SixEngine.ITEMS.map(i=>relicCard('assets/relics/relic-'+String(i.art).padStart(2,'0')+'.webp',i.name,i.desc)).join('')}</div>`;
+/* 場景 */
+document.getElementById('scenes').innerHTML=
+ `<h2>戰場 <small>無盡鏖戰會隨機選用；章節戰場只出現在征服旅程</small></h2><div class="gp-grid">${SixPresentation.maps.map(m=>`<article class="sc-card"><img src="assets/battlefields/${m.id}.webp" alt="" loading="lazy"><div><b>${esc(m.name)}</b>${m.story?'<span class="rar rare">章節</span>':''}<p>${esc(m.subtitle)}</p></div></article>`).join('')}</div>`;
+/* 故事 */
+const cardName=id=>(SixData.cards.find(c=>c.id===id)||{}).name||id;
+const lines=a=>`<div class="st-lines">${a.map(t=>`<p>${esc(t)}</p>`).join('')}</div>`;
+const pool=(t,a)=>`<details class="pool"><summary>${esc(t)}（${a.length}）</summary>${a.map(x=>`<p>${esc(x)}</p>`).join('')}</details>`;
+(()=>{const S=STORY;let h='';
+ h+=`<h2>序章 <small>${esc(S.prologue.title)}</small></h2>${lines(S.prologue.lines)}${lines(S.prologue.after||[])}`;
+ h+=`<h2>${esc(S.spirits.title)}</h2>${lines(S.spirits.lines)}`;
+ h+=`<h2>六境 <small>每境：一場戰鬥或精英、一場守護戰，取得一枚律種</small></h2>`;
+ h+=S.chapters.map((c,i)=>`<article class="st-ch"><img class="sc" src="${c.scene}" alt="" loading="lazy"><div><h3>${i+1}．${esc(c.name)} <small style="color:#9ca397;font-weight:400">${esc(c.place)}</small></h3>${c.lines.map(t=>`<p>${esc(t)}</p>`).join('')}<p class="goal">目標：${esc(c.goal)}</p><div class="st-g" style="--ec:${c.guardian.color}"><span class="face">${rvFace(c.guardian.art)}</span><div><b>${esc(c.guardian.name)}</b>（${esc(c.guardian.label)}）<br>${esc(c.guardian.note)}</div></div><p style="font-size:13px;color:#9ca397">${esc(c.seed.name)}・${esc(c.seed.item)}：${esc(c.seed.line)}</p></div></article>`).join('');
+ h+=`<h2>終章 <small>${esc(S.finale.title)}</small></h2>${lines(S.finale.lines)}<div class="st-g" style="--ec:${S.finale.boss.color}"><span class="face">${rvFace(S.finale.boss.art)}</span><div><b>${esc(S.finale.boss.name)}</b><br>${esc(S.finale.boss.note)}</div></div>${lines(S.confront.lines)}`;
+ h+=`<h2>尾聲 <small>${esc(S.ending.title)}</small></h2>${lines(S.ending.lines)}`;
+ h+=`<h2>隨機文本 <small>每局不一樣，同一局內不重複</small></h2>`;
+ h+=pool('大廳標語',S.lobby)+pool('戰勝之後',S.win)+pool('敗北之後',S.lose);
+ h+=pool('序章戰前旁白',S.pre.p)+S.chapters.map((c,i)=>pool(c.name+' 戰前旁白',S.pre[i])).join('')+pool('終章戰前旁白',S.pre.f);
+ h+=Object.entries(S.camps).map(([n,c])=>pool('營地同伴・'+n+'（'+c.role+'）',c.lines)).join('');
+ h+=Object.entries(S.heroLines).map(([id,o])=>pool('英雄台詞・'+cardName(id),[...o.summon.map(x=>'登場：'+x),...o.skill.map(x=>'技能：'+x)])).join('');
+ h+=Object.entries(S.epilogue).map(([id,a])=>pool('後日談・'+cardName(id),a)).join('');
+ document.getElementById('story').innerHTML=h;})();
