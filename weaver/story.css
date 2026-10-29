@@ -177,3 +177,13 @@ body.in-battle #toast{bottom:auto;top:max(96px,22dvh);background:#0d130ed9;color
 
 /* 主畫面 App（iOS 狀態列疊在頁面上方）：頁首避開瀏海與狀態列 */
 @media(max-width:1099px){header{padding-top:calc(env(safe-area-inset-top,0px) + 8px)!important}}
+
+/* 卡面數值：不用圖示，用顏色分辨（攻擊＝暖橘、生命＝綠、時間＝青藍） */
+.yc-stats .st-atk{color:#f0a05a}
+.yc-stats .st-hp{color:#9fd08c}
+.yc-stats .st-dur{color:#8fc7e0}
+.yc-stats .st-dur i{font-size:.7em;margin-left:1px}
+.yc-stats{white-space:nowrap;align-items:baseline}
+@media(max-width:1099px){body.in-battle .yc-stats span:nth-child(2){color:inherit;font-weight:600;font-size:15cqw;align-self:baseline}
+body.in-battle .yc-stats .st-hp{color:#9fd08c}body.in-battle .yc-stats .st-dur{color:#8fc7e0}
+body.in-battle .yc-stats{font-size:16cqw!important}}

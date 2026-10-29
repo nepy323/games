@@ -21,7 +21,7 @@ const HEROES={
  f4_7:{metric:'controls',need:4,timeNeed:25,cond:'累計施加控制',skill:'盤根',cd:30,desc:'敵人較多的一條路線上的地面敵軍定身 4 秒，並在 8 秒內受傷 +25%'},
  f5_5:{metric:'unitsDeployed',need:6,cond:'累計部署單位',skill:'戰鼓',cd:30,desc:'全場友軍攻速 +40%（8 秒）'}
 };
-/* 寶物：系統隨機給的單次道具（不在牌組內），多人模式專用；數值為弱化版遺物效果 */
+/* 寶物：系統隨機給的單次道具（不在牌組內），無盡鏖戰專用；數值為弱化版遺物效果 */
 const ITEM_FIRST=30,ITEM_EVERY=50,ITEM_MAX=2;
 const ITEMS=[
  {id:'brass',name:'黃銅機心',art:8,desc:'立即回復 2 點資源'},

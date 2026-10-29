@@ -1,4 +1,4 @@
-/* 軍旗：戰場計分列顯示雙方主旗（牌組中張數最多的勢力）。單人模式的戰旗與徽章在 tower.js。 */
+/* 軍旗：戰場計分列顯示雙方主旗（牌組中張數最多的勢力）。征服旅程的戰旗與徽章在 tower.js。 */
 (()=>{
  const dominant=deck=>{const n=SixEngine.bannerCount(deck);let best=-1,f=-1;n.forEach((c,i)=>{if(c>best){best=c;f=i;}});return best>0?f:-1;};
  const spans=[document.querySelector('.army.enemy span'),document.querySelector('.army.ally span')];

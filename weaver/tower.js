@@ -1,5 +1,5 @@
 'use strict';
-/* 單人模式 v3（織律者）：玩家是「織律者」，選一位旗主同行。序章＋六境（各兩場，第二場為守護戰，取得律種）＋終章，共 15 場。
+/* 征服旅程 v3（織律者）：玩家是「織律者」，選一位旗主同行。序章＋六境（各兩場，第二場為守護戰，取得律種）＋終章，共 15 場。
    每場勝利強化英雄、換卡；堡壘耐久跨場保留，營地可修復；精英掉遺物。故事文字在 story.js。
    依賴 game.js / experience.js / relics.js 的全域：deck、CARDS、presets、factions、names、cardFace、
    commanders、portrait、findMatch、newLobby、endUI、RELICS、HERO_UPS、relicIcon。 */
@@ -172,7 +172,7 @@ function towerCamp(choice){
 /* ---------- 介面 ---------- */
 const towerPanel=document.createElement('div');towerPanel.id='towerPanel';towerPanel.hidden=true;document.body.appendChild(towerPanel);
 const towerHud=document.createElement('div');towerHud.id='towerHud';towerHud.hidden=true;$('opponentCard').after(towerHud);
-const towerTab=document.createElement('button');towerTab.id='towerTab';towerTab.textContent='單人模式';$('battleTab').after(towerTab);
+const towerTab=document.createElement('button');towerTab.id='towerTab';towerTab.textContent='征服旅程';$('battleTab').after(towerTab);
 function towerHidePanel(){towerPanel.hidden=true;document.body.classList.remove('tower-open');}
 function towerShowPanel(){if(mode==='playing')pause();towerPanel.hidden=false;document.body.classList.add('tower-open');towerRender();}
 const relicById=id=>RELICS.find(r=>r.id===id),upById=id=>HERO_UPS.find(u=>u.id===id);
@@ -234,14 +234,14 @@ function towerMapHTML(){
   if(!cm)return `<button class="tw-node ${n.kind}" data-node="${i}"><span class="glyph">${info.glyph}</span><strong>${info.name}</strong><em>${info.note}</em></button>`;
   return `<button class="tw-node foe ${n.kind}" data-node="${i}"><span class="tw-badge">${info.glyph} ${info.name}</span><span class="tw-face" style="--ec:${cm.color}">${portrait(cm)}</span><strong>${cm.name}</strong><small>${n.cm?cm.note:cm.label+'型 · '+n.deckName}</small><span class="tw-go">開始戰鬥 →</span></button>`;}).join('');
  const chn=towerChapter(r.floor),chTitle=chn<0?'序章 · 斷橋':chn<6?'第 '+(chn+1)+' 章 · '+STORY.chapters[chn].name+'（'+STORY.chapters[chn].place+'）':'終章 · 環中無王';
- return `<div class="tw-top"><b>單人模式</b><button class="outline" id="twExit">離開（可續玩）</button></div><div class="tw-track">${track}</div>${towerRingHTML()}<h3 class="tw-sec foe">${chTitle}</h3>${towerFlavorHTML()}<div class="tw-nodes">${cards}</div>`;
+ return `<div class="tw-top"><b>征服旅程</b><button class="outline" id="twExit">離開（可續玩）</button></div><div class="tw-track">${track}</div>${towerRingHTML()}<h3 class="tw-sec foe">${chTitle}</h3>${towerFlavorHTML()}<div class="tw-nodes">${cards}</div>`;
 }
 function towerRender(){
  if(towerPanel.hidden)return;
  const r=towerRun;let h='';
  if(r&&r.stage==='next'){towerNextStage();return;}
  if(!r){
-  h=`<div class="tw-head"><div><b>單人模式</b></div><button class="outline" id="twExit">返回</button></div><div class="tw-story has-bg" style="--bg:url(assets/story/camp.webp)"><div class="ts-body"><small class="ts-kicker">織律者</small><h2>你要接回這個世界</h2><div class="ts-lines"><p class="ts-line" style="--i:0">你想把停下的世界接回去。</p><p class="ts-line" style="--i:1">世界聽見了，把失律洩出的八隻律靈借給你。</p><p class="ts-line" style="--i:2">它們就是你的整副牌。先靠它們走出這座橋，各境的旗主之後會一個一個回應你。</p></div><div class="tw-deck">${TOWER_SPIRITS.map(id=>towerCardHTML(id,'')).join('')}</div><p class="tw-sub">六隻守著環上的六條律，蝕與闇是變了質的兩股律。兩隻特定的律靈相鄰部署，會合體成更大的律靈。你有 ${TOWER_LIVES} 次機會，敗北一次少一次。</p><div class="tw-actions"><button class="primary" data-start="go">出發 →</button></div></div></div>`;
+  h=`<div class="tw-head"><div><b>征服旅程</b></div><button class="outline" id="twExit">返回</button></div><div class="tw-story has-bg" style="--bg:url(assets/story/camp.webp)"><div class="ts-body"><small class="ts-kicker">織律者</small><h2>你要接回這個世界</h2><div class="ts-lines"><p class="ts-line" style="--i:0">你想把停下的世界接回去。</p><p class="ts-line" style="--i:1">世界聽見了，把失律洩出的八隻律靈借給你。</p><p class="ts-line" style="--i:2">它們就是你的整副牌。先靠它們走出這座橋，各境的旗主之後會一個一個回應你。</p></div><div class="tw-deck">${TOWER_SPIRITS.map(id=>towerCardHTML(id,'')).join('')}</div><p class="tw-sub">六隻守著環上的六條律，蝕與闇是變了質的兩股律。兩隻特定的律靈相鄰部署，會合體成更大的律靈。你有 ${TOWER_LIVES} 次機會，敗北一次少一次。</p><div class="tw-actions"><button class="primary" data-start="go">出發 →</button></div></div></div>`;
  }else if(r.stage==='story'){
   h=towerStoryHTML(r.story.id);
  }else if(r.stage==='map'){
@@ -280,7 +280,7 @@ towerPanel.addEventListener('click',e=>{
 towerTab.onclick=()=>towerShowPanel();
 
 /* ---------- 與既有流程銜接 ---------- */
-/* 單人模式：戰場依章節固定（序章、終章用關門之城） */
+/* 征服旅程：戰場依章節固定（序章、終章用關門之城） */
 const _selectBattlefield=selectBattlefield;
 selectBattlefield=function(){
  if(towerCtx&&towerRun){const c=towerChapter(towerRun.floor),id='ch'+(c<0||c>5?0:c);currentMap=SixPresentation.maps.find(m=>m.id===id)||currentMap;lastMap=currentMap.id;updateMapLabel();return;}
@@ -292,6 +292,6 @@ newLobby=function(){if(towerCtx)exitTowerMode();else{newLobbyRaw();if(typeof STO
 const baseEndUI=endUI;
 endUI=function(){baseEndUI();if(towerCtx){towerBattleEnded();}};
 $('deckTab').addEventListener('click',()=>{if(towerCtx)exitTowerMode();},true);
-function towerUpdateHud(){if(towerCtx&&towerRun){towerHud.hidden=false;towerHud.innerHTML='單人模式 · 英雄 Lv.'+(1+heroUpCount())+' · <span class="hud-flags">'+towerFlags()+'</span>';}else towerHud.hidden=true;}
+function towerUpdateHud(){if(towerCtx&&towerRun){towerHud.hidden=false;towerHud.innerHTML='征服旅程 · 英雄 Lv.'+(1+heroUpCount())+' · <span class="hud-flags">'+towerFlags()+'</span>';}else towerHud.hidden=true;}
 setInterval(towerUpdateHud,300);
 towerLoad();
