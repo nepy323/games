@@ -174,3 +174,6 @@ body.in-battle #toast{bottom:auto;top:max(96px,22dvh);background:#0d130ed9;color
 /* 電腦版：單張對手卡不要被撐成整排寬 */
 .tw-nodes:has(.foe){grid-template-columns:repeat(auto-fit,minmax(230px,320px));justify-content:start}
 @media(max-width:700px){.tw-nodes:has(.foe){grid-template-columns:1fr 1fr}}
+
+/* 主畫面 App（iOS 狀態列疊在頁面上方）：頁首避開瀏海與狀態列 */
+@media(max-width:1099px){header{padding-top:calc(env(safe-area-inset-top,0px) + 8px)!important}}
