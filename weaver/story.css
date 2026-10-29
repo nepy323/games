@@ -170,3 +170,7 @@ body.in-battle #toast{bottom:auto;top:max(96px,22dvh);background:#0d130ed9;color
 #heroBanner p{margin:2px 0 0;font-size:14px;line-height:1.4;color:#e4e2d7}
 @keyframes hbIn{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes hbOut{to{opacity:0}}
+
+/* 電腦版：單張對手卡不要被撐成整排寬 */
+.tw-nodes:has(.foe){grid-template-columns:repeat(auto-fit,minmax(230px,320px));justify-content:start}
+@media(max-width:700px){.tw-nodes:has(.foe){grid-template-columns:1fr 1fr}}

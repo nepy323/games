@@ -210,7 +210,7 @@ function towerMe(){
  const r=towerRun,lead=r.heroes[0]?CARDS[r.heroes[0]]:null;
  const fort=r.fort.map(f=>`<i style="--p:${Math.round(f*100)}%"></i>`).join('');
  const face=id=>`<span class="tw-hface" title="${CARDS[id].name}" style="--ec:${factions[CARDS[id].faction][2]}">${artSVG(id,'portrait')}</span>`;
- return `<div class="tw-me"><div class="tw-hero"><span class="tw-hface tw-pface" title="織律者">${artSVG('story_player','portrait')}</span><div><b>${lead?'織律者 · '+lead.name.split('・')[0]+(r.heroes.length>1?' 等 '+r.heroes.length+' 位旗主':''):'織律者'}</b><small>${lead?'Lv.'+(1+heroUpCount())+' · ':'中立精靈同行 · '}${r.wins} 勝</small></div>${r.heroes.map(face).join('')}</div>
+ return `<div class="tw-me"><div class="tw-hero"><span class="tw-hface tw-pface" title="織律者">${artSVG('story_player','portrait')}</span><div><b>${lead?'織律者 · '+lead.name.split('・')[0]+(r.heroes.length>1?' 等 '+r.heroes.length+' 位旗主':''):'織律者'}</b><small>${lead?'Lv.'+(1+heroUpCount())+' · ':'八隻律靈同行 · '}${r.wins} 勝</small></div>${r.heroes.map(face).join('')}</div>
  <div class="tw-fort" title="堡壘耐久（跨場保留，營地可修復）"><small>堡壘</small>${fort}</div>
  <div class="tw-lives" title="剩餘機會">${towerFlags()}</div>
  <div class="tw-relics">${r.relics.map(id=>{const x=relicById(id);return `<span title="${x.name}：${x.desc}">${relicIcon(x,32)}</span>`;}).join('')||'<small>尚無遺物</small>'}</div></div>`;
