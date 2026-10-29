@@ -1,0 +1,172 @@
+/* ===== 無旗餘燼：劇情轉場、界律之環、營地 ===== */
+.tw-story{position:relative;min-height:calc(100dvh - 80px);display:flex;border-radius:10px;overflow:hidden;background:#0a110d;isolation:isolate;cursor:pointer}
+.tw-story.has-bg::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(#0a110dd0 0%,#0a110d22 38%,#0a110df2 100%),var(--bg) center/cover;animation:tsPush 22s ease-out forwards;transform-origin:60% 40%}
+@keyframes tsPush{from{transform:scale(1)}to{transform:scale(1.14)}}
+.ts-body{margin:auto auto 0;width:100%;max-width:640px;padding:28px 22px 30px;text-align:left}
+.ts-kicker{display:block;letter-spacing:.35em;color:var(--gold);font-size:12px}
+.ts-body h2{font-size:30px!important;letter-spacing:4px!important;margin:6px 0 2px!important}
+.ts-sub{display:block;color:var(--muted);letter-spacing:2px;margin-bottom:10px}
+.ts-lines{margin:14px 0 8px}
+.ts-line{margin:7px 0;font-size:16px;line-height:1.8;color:#ece6d2;opacity:0;transform:translateY(6px);animation:tsLine .9s ease forwards;animation-delay:calc(var(--i)*1.2s + .5s)}
+@keyframes tsLine{to{opacity:1;transform:none}}
+.tw-story.skip .ts-line{animation:none;opacity:1;transform:none}
+.tw-story .tw-actions{opacity:0;animation:tsLine .6s ease forwards;animation-delay:2.2s}.tw-story.skip .tw-actions{animation:none;opacity:1}
+.ts-foe{position:relative;display:flex;align-items:center;gap:12px;margin:16px 0 4px;padding:10px 14px;border:1px solid #ffffff22;border-radius:8px;background:#0b120ecc}
+.ts-foe .tw-face{width:64px;height:64px;flex:none;border:2px solid var(--ec);border-radius:8px;overflow:hidden;background:#0b120e}.ts-foe .tw-face svg{width:100%;height:100%}
+.ts-foe b{display:block;font-size:16px}.ts-foe small{color:var(--muted);font-size:12px;line-height:1.5}
+.ts-foe.big .tw-face{width:92px;height:92px}
+.ts-badge{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:54px;height:54px;object-fit:contain;opacity:.9}
+.ts-seed{display:block;width:130px;margin:14px auto 4px;filter:drop-shadow(0 0 16px #ffd36a77);animation:tsSeed 1.4s ease}
+@keyframes tsSeed{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.tw-ring{display:flex;align-items:center;gap:12px;margin:8px 0 6px}
+.tw-ring-img{width:60px;flex:none;filter:drop-shadow(0 2px 6px #000a)}.tw-ring-img.big{display:block;width:210px;margin:12px auto}
+.tw-seeds{display:flex;gap:6px;align-items:center}
+.tw-seed{width:34px;height:34px;object-fit:contain;filter:grayscale(1) brightness(.5);opacity:.45;transition:filter .4s,opacity .4s}
+.tw-seed.lit{filter:drop-shadow(0 0 6px #ffd36a99);opacity:1}
+.tw-camp{height:170px;border-radius:10px;border:1px solid #ffffff1a;background:linear-gradient(#0a110d22,#0a110df0),var(--bg) center/cover;display:flex;align-items:flex-end;padding:12px 16px;margin:6px 0 12px}
+.tw-companion b{color:var(--gold);margin-right:8px}.tw-companion small{color:var(--muted)}.tw-companion p{margin:4px 0 0;font-size:14px;line-height:1.7;max-width:560px}
+.tw-pface{margin-right:-4px}
+.tw-track{grid-template-columns:repeat(15,1fr)!important;gap:3px!important}
+.tw-cell{padding:3px 0}.tw-cell b{font-size:10px}.tw-cell span{font-size:9px;letter-spacing:-1px}
+.tw-cell.guardian{border-color:#b9954a}.tw-cell.finale,.tw-cell.boss{border-color:#a2483a}
+@media(max-width:700px){.ts-body{padding:20px 16px 24px}.ts-body h2{font-size:24px!important}.ts-line{font-size:15px}.tw-camp{height:130px}.tw-ring-img{width:48px}.tw-seed{width:30px;height:30px}.tw-story{min-height:calc(100dvh - 60px)}.ts-badge{width:44px;height:44px}}
+.tw-story.tint{background:radial-gradient(circle at 72% 22%,color-mix(in srgb,var(--tint) 30%,#0a110d),#0a110d 68%)}
+.ts-flagbg{position:absolute;right:-10px;top:4%;height:62%;object-fit:contain;opacity:.28;z-index:-1;filter:blur(.3px);animation:tsFlag 14s ease-in-out infinite alternate;transform-origin:50% 0}
+@keyframes tsFlag{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg)}}
+
+/* 標誌：以斷裂的界律之環取代原本的「Ⅵ」 */
+.crest{width:46px!important;height:46px!important;clip-path:none!important;border:0!important;background:none!important;padding:0}
+.crest img,.seal img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 6px #000a);pointer-events:none}
+.seal{clip-path:none!important;border:0!important;background:none!important;width:124px!important;height:124px!important}
+@media(max-width:700px){.crest{width:38px!important;height:38px!important}.seal{width:88px!important;height:88px!important}}
+
+/* 開戰前不露出手牌與資源列：進入戰鬥（含暫停）才顯示 */
+body:not(.in-battle) .control{display:none!important}
+
+/* 換牌按鈕 */
+#swapBtn{margin-left:auto;padding:6px 12px;font:600 13px system-ui;color:#e9e3cc;background:#26301f;border:1px solid #7b8559;border-radius:6px;cursor:pointer;white-space:nowrap}
+#swapBtn b{color:var(--gold);font-weight:600}
+#swapBtn:disabled{opacity:.45;cursor:default}
+#swapBtn.active{background:#4a5a2a;border-color:var(--gold);box-shadow:0 0 10px #d7b77855}
+body.swap-mode .handcard{animation:swapPulse 1s ease-in-out infinite alternate}
+@keyframes swapPulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
+@media(max-width:1099px){body.in-battle #swapBtn{padding:5px 10px;font-size:12px}}
+
+#modalHint:empty{display:none}
+
+/* ===== 首頁（大廳）滿版：進戰鬥前整個視窗都是大廳 ===== */
+body:not(.in-battle) #battleView:not([hidden]){display:block!important}
+body:not(.in-battle) #battleView:not([hidden]) aside{display:none!important}
+body:not(.in-battle) #battleView:not([hidden]) .battle-panel{position:fixed;left:0;right:0;bottom:0;top:var(--hh,70px);width:auto!important;max-width:none!important;margin:0!important;border:0;border-radius:0;z-index:4;display:flex;flex-direction:column;background:#0a110d}
+body:not(.in-battle) #battleView:not([hidden]) :is(.scorebar,.battlefield-name,.arena-tools,#field){display:none!important}
+body:not(.in-battle) #battleView:not([hidden]) .arena{flex:1;min-height:0;height:auto;border:0;border-radius:0}
+body:not(.in-battle) #battleView:not([hidden]) #overlay{position:absolute;inset:0;background:linear-gradient(#0a110dc4,#0a110df0 78%),url(assets/story/world-collapse.webp) center/cover;justify-content:center;padding:24px}
+body:not(.in-battle) #battleView:not([hidden]) #overlay h2{font-size:clamp(26px,4.2vw,46px)}
+body:not(.in-battle) #battleView:not([hidden]) #overlay .seal{width:clamp(110px,16vh,170px)!important;height:clamp(110px,16vh,170px)!important}
+body:not(.in-battle) #battleView:not([hidden]) #start{min-width:min(320px,80vw);font-size:18px;padding:16px 28px}
+body:not(.in-battle) #battleView:not([hidden]) #overlay h2{text-wrap:balance}
+
+/* 戰場右上角：英雄格與寶物 */
+#fieldBar{position:absolute;top:6px;right:6px;z-index:6;display:flex;gap:6px;align-items:flex-start}
+#fieldBar[hidden]{display:none}
+.fb-chip{display:flex;flex-direction:column;align-items:center;gap:2px;width:54px;padding:0;border:0;background:none;color:#ece6d2;cursor:pointer;font:inherit}
+.fb-face{position:relative;display:block;width:46px;height:46px;border-radius:50%;overflow:hidden;background:#0b120e;border:2px solid var(--ec,#8d7e55);box-shadow:0 2px 8px #000b}
+.fb-face svg,.fb-face img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-hero .fb-face{filter:grayscale(.8) brightness(.7)}
+.fb-hero.ready .fb-face,.fb-hero.field .fb-face{filter:none}
+.fb-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--ec,#d7b778) var(--p,0%),#0000 0);-webkit-mask:radial-gradient(circle,#0000 58%,#000 60%);mask:radial-gradient(circle,#0000 58%,#000 60%);pointer-events:none}
+.fb-hero.ready .fb-face{animation:fbPulse 1s ease-in-out infinite alternate;box-shadow:0 0 12px var(--ec)}
+.fb-hero.picked .fb-face{outline:3px solid var(--gold)}
+.fb-hero.skill-ready .fb-face{animation:fbPulse .8s ease-in-out infinite alternate;box-shadow:0 0 14px #ffd36a}
+@keyframes fbPulse{from{transform:scale(1)}to{transform:scale(1.07)}}
+.fb-label{font-size:10px;line-height:1.15;text-align:center;white-space:nowrap;text-shadow:0 1px 3px #000,0 0 6px #000;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.fb-item .fb-face{border-color:#e6c46f;background:#1a140a}
+.fb-item .fb-face img{padding:3px;object-fit:contain}
+body.hero-pick #field{cursor:crosshair}
+@media(max-width:700px){.fb-chip{width:48px}.fb-face{width:40px;height:40px}.fb-label{font-size:9px}}
+
+/* 構築頁：卡池用卡面小圖，三到六欄，頁面不再過長 */
+#collectionGrid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))!important;gap:8px!important}
+#collectionGrid .collection-card{padding:0!important;min-height:0!important;background:none!important;border:0!important;box-shadow:none!important;position:relative;border-radius:6px}
+#collectionGrid .collection-card:hover .ycard{transform:translateY(-2px)}
+#collectionGrid .collection-card:not(.chosen) .chosenmark{display:none}
+#collectionGrid .chosenmark{position:absolute!important;left:auto!important;right:auto!important;left:50%!important;top:48%!important;bottom:auto!important;transform:translate(-50%,-50%)!important;width:auto!important;height:auto!important;padding:1px 6px!important;border:0!important;border-radius:9px;background:#d7b778!important;color:#1a1608!important;font-size:10px!important;font-weight:700;line-height:1.4;z-index:3}
+#collectionGrid .collection-card.chosen .ycard{filter:grayscale(.85) brightness(.55);outline:0!important}
+@media(max-width:700px){#collectionGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+
+/* 單人模式對手卡：頭像滿版放大，種類標籤疊在左上角 */
+.tw-node.foe{position:relative;padding:0!important;gap:0!important;overflow:hidden;align-items:stretch!important;text-align:left!important}
+.tw-node.foe .tw-face{width:100%!important;height:auto!important;aspect-ratio:3/2;border:0!important;border-radius:0!important;border-bottom:2px solid var(--ec)!important}
+.tw-node.foe .tw-face svg,.tw-node.foe .tw-face .unit-art{width:100%!important;height:100%!important}
+.tw-node.foe .tw-face svg image{filter:none}
+.tw-node.foe .tw-badge{position:absolute;top:8px;left:8px;z-index:2;padding:3px 9px;border-radius:12px;background:#0b110ecc;border:1px solid #d7b77888;font-size:12px}
+.tw-node.foe strong{padding:10px 14px 0;font-size:17px}
+.tw-node.foe small{padding:2px 14px 0;line-height:1.5}
+.tw-node.foe .tw-go{margin:10px 14px 14px;align-self:flex-start}
+@media(max-width:700px){.tw-nodes:has(.foe){grid-template-columns:1fr 1fr}.tw-node.foe .tw-face{aspect-ratio:1/1}.tw-node.foe strong{font-size:14px;padding:8px 10px 0}.tw-node.foe small{padding:2px 10px 0;font-size:11px}.tw-node.foe .tw-go{margin:8px 10px 10px}}
+.tw-node.foe .tw-badge{white-space:nowrap;width:auto!important;writing-mode:horizontal-tb}
+
+/* 隨機旁白 */
+.tw-flavor{margin:8px 0 12px;padding:8px 12px;border-left:2px solid var(--gold);color:#cfc9b0;font-size:14px;line-height:1.7;font-style:italic;background:#ffffff06}
+
+
+
+/* 新素材：標題、技能圖示、同伴 */
+.title-logo{display:block;width:min(560px,82%);margin:4px auto 14px;filter:drop-shadow(0 4px 14px #000c)}
+.fb-skill{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#0b110ecc;border:1px solid #d7b778;object-fit:contain;padding:2px;display:none}
+.fb-hero.field .fb-skill{display:block}
+.hp-skill{width:22px;height:22px;object-fit:contain;vertical-align:middle;margin-right:6px}
+.cp-face{width:72px!important;height:72px!important;flex:none;border-radius:50%!important}
+.cp-face svg{width:100%;height:100%}
+.tw-camp{align-items:center!important;gap:12px}
+body:not(.in-battle) #battleView:not([hidden]) #overlay .seal{display:none}
+
+/* 英雄格與寶物：和能量數字、換牌同一列（沒有充能條） */
+.resource #fieldBar{position:static!important;order:2;flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:4px;align-items:flex-start;justify-content:center;margin:0;padding:0}
+.resource #swapBtn{order:3}
+.resource .energytrack,.resource #regen,.resource>span{display:none!important}
+#fieldBar:empty{display:none!important}
+#fieldBar .fb-chip{flex-direction:column;width:46px;gap:1px;padding:2px 0;background:none;border:0;align-items:center}
+#fieldBar .fb-face{width:36px;height:36px;flex:none}
+#fieldBar .fb-label{font-size:10px;max-width:46px;text-shadow:none;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fieldBar .fb-skill{width:15px;height:15px;right:-3px;bottom:-3px;padding:1px}
+/* 手機對戰：戰場吃滿版寬度，操作區變矮 */
+@media(max-width:1099px){body.in-battle main{padding:max(0px,env(safe-area-inset-top)) 0 max(4px,env(safe-area-inset-bottom))!important;gap:0!important;max-width:none!important}
+body.in-battle .battle-panel{width:min(100%,max(300px,calc((100dvh - 244px)*.857 + 2px)))!important;border-radius:0;border-left:0;border-right:0}
+body.in-battle .control{padding:4px 6px 4px!important;border-radius:0}
+body.in-battle .resource{margin:0 0 4px!important;gap:6px}
+body.in-battle .resource strong,body.in-battle #energy{font-size:30px!important}}
+@media(max-width:1099px) and (max-height:720px){body.in-battle .battle-panel{width:min(100%,max(300px,calc((100dvh - 256px)*.857 + 2px)))!important}}
+/* 標題：用字體呈現（不再需要生成標題圖） */
+.title-logo{width:auto!important;text-align:center;filter:none!important}
+.title-logo b{display:block;font:700 clamp(50px,15vw,80px)/1.1 'Songti TC','Noto Serif TC',Georgia,serif;letter-spacing:.28em;margin-right:-.28em;background:linear-gradient(#f4dfa4,#b98d45 60%,#7a5a28);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 10px #000c)}
+.title-logo small{display:block;margin-top:6px;font:600 14px Georgia,serif;letter-spacing:.42em;margin-right:-.42em;color:#c9b27a}
+
+/* 按鈕：與標題同一套燙金質感（深底、雙層金邊、金色字） */
+.primary{background:linear-gradient(#2d2b1c,#161911)!important;color:#ecd28f!important;border:1px solid #b08f4c!important;border-radius:3px;font-family:'Songti TC','Noto Serif TC',Georgia,serif;font-weight:700;letter-spacing:.22em;text-shadow:0 1px 0 #000,0 0 10px #d7b77855;box-shadow:inset 0 0 0 3px #12150f,inset 0 0 0 4px #6d5a33,0 4px 16px #0009}
+.primary:hover:not(:disabled){background:linear-gradient(#3a361f,#1f2214)!important;border-color:#e6c982!important;color:#f7e3a8!important}
+nav button.active{background:linear-gradient(#2b2a1c,#171a12);border-color:#a98a4a;color:#ecd28f;box-shadow:inset 0 0 0 2px #12150f,inset 0 0 0 3px #5e4f2d}
+
+/* 手牌字放大：攻擊是重點（大），生命次要（小而淡） */
+@media(max-width:1099px){body.in-battle .yc-top strong{font-size:16.5cqw!important}
+body.in-battle .yc-stats{font-size:17cqw!important;padding:1px 4px!important}
+body.in-battle .yc-stats span:nth-child(2){font-size:12.5cqw;color:#b9bfa9;font-weight:500;align-self:flex-end}
+body.in-battle .yc-stats i{font-size:11cqw}
+body.in-battle .yc-eff{font-size:14cqw}}
+@media(max-width:1099px){body.in-battle .yc-top strong{font-size:14cqw!important;letter-spacing:-.02em}body.in-battle .yc-cost{width:15cqw!important;height:15cqw!important;font-size:10.5cqw!important}}
+
+/* 對戰中的提示（英雄登場台詞、合體、寶物）放在戰場偏上，不蓋住手牌 */
+body.in-battle #toast{bottom:auto;top:max(96px,22dvh);background:#0d130ed9;color:#f1dfa8;border:1px solid #b08f4c;border-radius:3px;padding:9px 18px;font-size:15px;text-align:center;box-shadow:0 6px 24px #000a;backdrop-filter:blur(3px)}
+#homeBtn{display:block;margin:4px auto 0;background:none;border:0;color:#c9b27a;font-size:14px;letter-spacing:.2em;padding:10px 20px;text-decoration:underline;text-underline-offset:5px}
+#homeBtn[hidden]{display:none}
+
+/* 英雄登場橫幅：頭像加台詞，從左滑入，停一下淡出（不用於一般提示） */
+#heroBanner{position:absolute;left:0;right:0;top:22%;z-index:7;display:flex;align-items:center;gap:12px;padding:8px 16px 8px 10px;background:linear-gradient(90deg,#0b100cf2 0,#0b100cdd 70%,#0b100c00);border-top:1px solid var(--ec,#b08f4c);border-bottom:1px solid var(--ec,#b08f4c);pointer-events:none}
+#heroBanner.show{animation:hbIn .45s cubic-bezier(.2,.8,.2,1) both,hbOut .5s 2.1s ease-in forwards}
+#heroBanner .hb-face{flex:none;width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid var(--ec,#b08f4c);background:#141a14;box-shadow:0 0 14px #000a}
+#heroBanner .hb-face svg,#heroBanner .hb-face img{width:100%;height:100%;display:block}
+#heroBanner small{display:block;font-size:11px;letter-spacing:.25em;color:var(--ec,#d7b778)}
+#heroBanner b{display:block;font:700 22px/1.2 'Songti TC','Noto Serif TC',Georgia,serif;color:#f1dfa8;letter-spacing:.12em}
+#heroBanner p{margin:2px 0 0;font-size:14px;line-height:1.4;color:#e4e2d7}
+@keyframes hbIn{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes hbOut{to{opacity:0}}
