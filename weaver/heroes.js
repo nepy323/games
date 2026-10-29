@@ -9,6 +9,10 @@ let heroPick=-1;
   banner.innerHTML=`<span class="hb-face">${artSVG(id,'portrait')}</span><div><small>${kind==='skill'?'發動主動技':'英雄登場'}</small><b>${c.name.split('・')[0]}</b><p>「${line}」</p></div>`;
   banner.hidden=false;banner.classList.remove('show');void banner.offsetWidth;banner.classList.add('show');clearTimeout(bt);bt=setTimeout(()=>{banner.hidden=true;},2600);};
  window.heroQuip=quip;
+ /* 技能扣點：能量數字抖動變紅，旁邊飄出 -1 */
+ const energyPay=n=>{const box=document.querySelector('.control .resource>div'),num=document.getElementById('energy');if(!box||!num)return;
+  box.classList.remove('pay');void box.offsetWidth;box.classList.add('pay');
+  const f=document.createElement('i');f.className='pay-float';f.textContent='−'+(n.paid||1)+' '+n.name;box.appendChild(f);setTimeout(()=>f.remove(),1100);};
  const ib=document.createElement('div');ib.id='itemBanner';ib.hidden=true;document.querySelector('.arena').appendChild(ib);let it=0;
  const itemBanner=n=>{const d=SixEngine.ITEMS.find(x=>x.id===n.item);if(!d)return;const foe=n.team!==0;
   ib.className=(foe?'foe ':'ally ')+'show';
@@ -38,7 +42,7 @@ let heroPick=-1;
   if(items.length&&bar.dataset.newItem!==String(items.length)){bar.dataset.newItem=String(items.length);}
  };
  setInterval(update,150);
- setInterval(()=>{if(typeof battle==='undefined'||!battle||!battle.notice)return;while(battle.notice.length){const n=battle.notice.shift();if(n.kind==='item'){itemBanner(n);beep(n.team===0?420:200,.14);}else if(n.team===0){toast(n.text);beep(520,.14);}}},200);
+ setInterval(()=>{if(typeof battle==='undefined'||!battle||!battle.notice)return;while(battle.notice.length){const n=battle.notice.shift();if(n.kind==='item'){itemBanner(n);beep(n.team===0?420:200,.14);}else if(n.kind==='skillcost'){if(n.team===0)energyPay(n);}else if(n.team===0){toast(n.text);beep(520,.14);}}},200);
  bar.addEventListener('click',e=>{
   const hb=e.target.closest('[data-hero]'),ib=e.target.closest('[data-item]');
   if(hb){

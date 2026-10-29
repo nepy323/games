@@ -22,12 +22,21 @@ const CLASS_GLYPH={
  chain:'<circle cx="9" cy="12" r="4.500"/><circle cx="15" cy="12" r="4.500"/>',
  portal:'<ellipse cx="12" cy="12" rx="5" ry="9"/><ellipse cx="12" cy="12" rx="2" ry="5"/>',
  drop:'<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/>',
- aim:'<circle cx="12" cy="12" r="7"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/>'
+ aim:'<circle cx="12" cy="12" r="7"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/>',
+ sq:'<rect x="6" y="6" width="12" height="12" fill="currentColor" stroke="none"/>',
+ tri:'<path d="M12 5l8 14H4z" fill="currentColor" stroke="none"/>',
+ dia:'<path d="M12 3l8 9-8 9-8-9z" fill="currentColor" stroke="none"/>',
+ circ:'<circle cx="12" cy="12" r="7" fill="currentColor" stroke="none"/>',
+ hex:'<path d="M12 3l7.500 4.500v9L12 21l-7.500-4.500v-9z" fill="currentColor" stroke="none"/>',
+ bar:'<rect x="3" y="9" width="18" height="6" rx="1" fill="currentColor" stroke="none"/>',
+ tdown:'<path d="M12 19L4 5h16z" fill="currentColor" stroke="none"/>'
 };
+/* 兵種職業形狀：方塊＝前排、三角＝突擊、菱形＝遠程、圓＝法術控制、六邊形＝支援、橫條＝攻城、倒三角＝飛行 */
+const SHAPE_BY_CATEGORY={'前排':'sq','防護':'sq','反重甲':'sq','巨獸':'sq','突擊':'tri','騎兵':'tri','獵獸':'tri','反騎兵':'tri','集群':'tri','噴火兵':'tri','射手':'dia','投石兵':'dia','砲兵':'dia','區域傷害':'dia','法師':'circ','控制法師':'circ','召喚師':'circ','控制':'circ','控制巨獸':'circ','支援':'hex','治療':'hex','軍團增益':'hex','軍團核心':'hex','攻城':'bar','攻城砲兵':'bar','攻城機械':'bar','攻城巨獸':'bar','飛行突擊':'tdown'};
 const CLASS_BY_CATEGORY={'前排':'shield','防護':'shield','反騎兵':'spear','射手':'bow','投石兵':'bow','騎兵':'rider','突擊':'blade','支援':'cross','治療':'cross','砲兵':'siege','攻城砲兵':'siege','轟擊':'siege','攻城機械':'siege','攻城':'siege','飛行突擊':'wing','軍團增益':'banner','軍團核心':'banner','防禦建築':'tower','產兵建築':'tower','傳送門':'portal','集群':'swarm','獵獸':'blade','法師':'mage','控制法師':'mage','召喚師':'mage','召喚':'mage','詛咒':'mage','控制':'mage','攻城巨獸':'colossus','控制巨獸':'colossus','噴火兵':'flame','陷阱':'trap','區域傷害':'burst','單體傷害':'aim'};
 const EFFECT_GLYPH={bomb:'burst',barrage:'burst',fire:'flame',bolt:'aim',heal:'cross',shield:'shield',armor:'shield',haste:'up',speed:'up',rush:'up',power:'up',frenzy:'flame',sacrifice:'drop',curse:'chain',slow:'chain',root:'chain',summon:'portal',portal:'portal',mine:'trap'};
 const glyphSVG=(key,cls='')=>`<svg class="yc-glyph ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CLASS_GLYPH[key]||CLASS_GLYPH.shield}</svg>`;
-const classGlyphKey=c=>c.type==='tactic'?(EFFECT_GLYPH[c.effect]||'burst'):(CLASS_BY_CATEGORY[c.category]||(c.type==='building'?'tower':'shield'));
+const classGlyphKey=c=>c.type==='tactic'?(EFFECT_GLYPH[c.effect]||'burst'):c.type==='building'||c.totem?'tower':(SHAPE_BY_CATEGORY[c.category]||'sq');
 
 /* 直式卡面：名稱條＋費用、插圖（右下兵種圖示、左下旗徽）、數值條。框色：普通=古銅、菁英=銀藍、英雄=金、戰術=紫。手牌、爬塔獎勵共用。 */
 function cardFace(c,o={}){
@@ -36,7 +45,7 @@ function cardFace(c,o={}){
   :c.totem?`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-dur" title="持續時間">${c.duration}<i>秒</i></span>`
   :`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span>`;
  const art=String(icon(c)).replace('<svg class="unit-art"','<svg preserveAspectRatio="xMidYMid slice" class="unit-art"');
- const kw=[c.airHit&&c.type!=='tactic'?['對空','up']:null,c.charge?['衝鋒','rider']:null].filter(Boolean).map(([t,k])=>`<span class="yc-kw" title="${t}">${glyphSVG(k)}</span>`).join('');
+ const kw=[c.charge?['衝鋒','rider']:null].filter(Boolean).map(([t,k])=>`<span class="yc-kw" title="${t}">${glyphSVG(k)}</span>`).join('');
  return `<div class="ycard ${tier} ${c.type==='building'?'bld':''}" style="--f:${f[2]}"><div class="yc-top"><strong>${c.tier==='hero'?c.name.split('・')[0]:c.name}</strong><span class="yc-cost">${c.cost}</span></div><div class="yc-art">${art}<span class="yc-crest">${SixPresentation.crest(c.faction)}</span>${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}<span class="yc-badges">${kw}<span class="yc-class" title="${c.category||effects[c.effect]||''}">${glyphSVG(classGlyphKey(c))}</span></span></div><div class="yc-stats">${stats}</div></div>`;
 }
 

@@ -38,6 +38,15 @@ const ITEMS=[
  {id:'crown',name:'破王之冠',art:1,desc:'英雄登場條件進度 +50%'},
  {id:'foresight',name:'預知儲蓄',art:13,desc:'鎖住目前所有資源，5 秒後全額還回（上限暫時提高到 14）'}
 ];
+/* 計數技能：精英以上單位的命中次數累積，滿了自動施放，花 1 點資源（可預扣，最低 -2） */
+const SKILL_COST=1,ENERGY_FLOOR=-2;
+const SKILLS={
+ banner:{name:'號令護盾',need:5,desc:'附近友軍獲得 120 護盾'},
+ leech:{name:'奪魂',need:4,desc:'恢復 180 生命'},
+ runes:{name:'符文庇佑',need:5,desc:'為附近生命比例最低的友軍提供 160 護盾'},
+ rally:{name:'戰鼓',need:6,desc:'附近友軍攻速提高，持續 4 秒'},
+ trample:{name:'震地',need:3,desc:'周圍敵軍受到 100 傷害並減速'}
+};
 const BANNER_NEED=[2,4,6];
 const BANNERS=[
  {key:'shield',name:'軍紀',text:['部署單位獲 40 點護盾','部署單位獲 70 點護盾','部署單位獲 110 點護盾'],val:[40,70,110]},
@@ -338,11 +347,22 @@ class Battle{
  }
  shieldUnit(u,amount){u.shield=Math.max(u.shieldUntil>this.clock?u.shield:0,amount);u.shieldUntil=this.clock+4;}
  abilityEffect(a){this.effect('cast',a.x,a.y,a.team,45,{label:a.abilityName});}
+ /* 技能施放：先扣 1 點資源（不夠也照扣，最低 -2），再產生效果 */
+ fireSkill(a,sk){
+  const p=this.players[a.team],before=p.energy;p.energy=Math.max(ENERGY_FLOOR,p.energy-SKILL_COST);
+  this.notice.push({team:a.team,kind:'skillcost',paid:before-p.energy,name:sk.name,unit:a.id});
+  const near=this.units.filter(u=>u.team===a.team&&u.hp>0&&u.type!=='building'&&dist(a,u)<105);
+  if(a.ability==='banner')near.forEach(u=>this.shieldUnit(u,120));
+  else if(a.ability==='leech')this.restore(a,180);
+  else if(a.ability==='runes'){const t=near.sort((u,v)=>u.hp/u.max-v.hp/v.max)[0];if(t)this.shieldUnit(t,160);}
+  else if(a.ability==='rally')near.forEach(u=>this.buff(u,'aura',4));
+  else if(a.ability==='trample')this.units.filter(u=>u.team!==a.team&&u.hp>0&&!u.tower&&u.type!=='building'&&dist(a,u)<110+u.r).forEach(u=>{this.hit(a,u,100);this.buff(u,'slow',2.5);});
+  this.effect('cast',a.x,a.y,a.team,60,{label:sk.name,big:true});
+ }
  onImpact(a,b,p){
   if(a.hp<=0)return;
-  if(p.charged&&a.ability==='banner'){this.units.filter(u=>u.team===a.team&&u.hp>0&&dist(a,u)<105&&u.type!=='building').forEach(u=>this.shieldUnit(u,120));this.abilityEffect(a);}
   if(p.charged&&a.ability==='dive'&&!b.tower&&b.type!=='building')this.buff(b,'slow',2);
-  if(p.charged&&a.ability==='leech'&&!b.tower&&b.type!=='building')this.restore(a,180);
+  const sk=SKILLS[a.ability];if(sk&&!a.derived){a.skillHits=(a.skillHits||0)+1;if(a.skillHits>=sk.need){a.skillHits=0;this.fireSkill(a,sk);}}
   if(a.ability==='roots'){a.rootHits=(a.rootHits||0)+1;if(a.rootHits%3===0&&!b.tower&&b.type!=='building'){this.buff(b,'root',1.2);this.abilityEffect(a);}}
  }
  support(a,dt){
@@ -351,7 +371,6 @@ class Battle{
 
   if(a.tier==='hero'){
    const nearby=this.units.filter(u=>u.team===a.team&&u.hp>0&&u.type!=='building'&&dist(a,u)<105);
-   if(a.ability==='runes'&&this.clock>=(a.runeAt??0)){const target=nearby.sort((u,v)=>u.hp/u.max-v.hp/v.max)[0];if(target){this.shieldUnit(target,160);a.runeAt=this.clock+6;this.abilityEffect(a);}}
    if(a.ability==='rally'&&nearby.filter(u=>u!==a).length>=3)nearby.forEach(u=>this.buff(u,'march',1.2));
    if(a.ability==='souls'&&(a.souls||0)>=3&&this.clock>=(a.soulAt||0)){a.souls-=3;a.soulAt=this.clock+6;this.summon('skel',a.team,a.x,a.y+(a.team?25:-25),2);this.abilityEffect(a);}
   }
@@ -476,5 +495,5 @@ class Battle{
   }
  }
 }
-const api={Battle,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
+const api={Battle,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
 })(globalThis);

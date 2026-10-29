@@ -10,3 +10,7 @@ filter.onchange=render;render();
 
 const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};
 document.getElementById('rivals').innerHTML=RIVALS.map(r=>`<article class="rv" style="--ec:${r.color}"><span class="face">${rvFace(r.art)}</span><div><b>${r.name}</b><span class="tag">${r.label}</span><p>${r.trait}</p><p class="ct">對策：${r.counter}</p><p class="dk">常用牌組：${(r.decks||[]).map(i=>SixData.presets[i]?SixData.presets[i][0]:'').filter(Boolean).join('、')}</p></div></article>`).join('');
+
+document.getElementById('gtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;const r=b.dataset.t==='rivals';
+ document.querySelectorAll('#gtabs button').forEach(x=>x.classList.toggle('on',x===b));
+ document.getElementById('grid').hidden=r;document.getElementById('rivals').hidden=!r;filter.hidden=r;if(r)window.scrollTo(0,0);};
