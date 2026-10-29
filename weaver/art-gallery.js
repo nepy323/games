@@ -9,7 +9,7 @@ const entries=SixData.cards.filter(c=>SixScenes[c.id]||SixArt[c.id]);
  for(const f of SixEngine.FUSIONS){const s=SixEngine.summons[f.into],a=byId[f.a],b=byId[f.b],m=FU[f.into];if(!s||!a||!b||!m)continue;
   const burst=`合體瞬間對周圍 ${f.burst.r} 範圍敵軍造成 ${f.burst.dmg} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
   const traits=[s.multi?'一次可攻擊 '+s.multi+' 個目標':'',s.armor?'減傷 '+Math.round(s.armor*100)+'%':'',s.regen?'每秒回復 '+s.regen+' 生命':'',s.heal?'為附近友軍回復生命':'',s.ward?'提供護盾':'',s.slowHit?'命中減速':'',s.splash?'命中點周圍濺射':'',s.airHit?'可對空':'',s.ttl?'存在 '+s.ttl+' 秒':''].filter(Boolean).join('、');
-  entries.push({id:f.into,name:s.name,faction:6,type:'troop',cost:a.cost+b.cost,hp:s.hp,dmg:s.dmg,n:1,category:m.cat,tier:'elite',race:'律靈',element:'律',
+  const at=entries.map(c=>c.faction).lastIndexOf(6)+1;entries.splice(at,0,{id:f.into,name:s.name,faction:6,type:'troop',cost:a.cost+b.cost,hp:s.hp,dmg:s.dmg,n:1,category:m.cat,tier:'elite',race:'律靈',element:'律',
    rules:`${a.name}與${b.name}在 8 秒內相鄰部署時合體。${m.line}${burst}${traits}。`});}}
 factions.forEach((f,i)=>filter.insertAdjacentHTML('beforeend',`<option value="${i}">${f[0]}</option>`));
 function render(){grid.innerHTML=entries.filter(c=>filter.value==='all'||c.faction===+filter.value).map(c=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${c.race||'—'} · ${c.category||'—'} · ${c.element||'物理'}</small><p>${c.rules||c.desc||''}</p></div></article>`).join('');}
