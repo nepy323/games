@@ -7,6 +7,6 @@
  setInterval(()=>{
   if(typeof battle==='undefined'||!battle||!battle.players)return;
   [1,0].forEach((team,i)=>{const f=dominant(battle.players[team].deck),key=team+':'+f;if(last[i]===key)return;last[i]=key;
-   if(f<0){imgs[i].hidden=true;return;}imgs[i].src=f>=6?'assets/emblems/logo-6.webp':`assets/emblems/badge-${f}.webp`;imgs[i].hidden=false;});
+   if(f<0){imgs[i].hidden=true;return;}imgs[i].src=f>=6?'assets/emblems/badge-6.webp':`assets/emblems/badge-${f}.webp`;imgs[i].hidden=false;});
  },300);
 })();

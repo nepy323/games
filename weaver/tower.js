@@ -179,7 +179,7 @@ const relicById=id=>RELICS.find(r=>r.id===id),upById=id=>HERO_UPS.find(u=>u.id==
 function towerCardHTML(id,attrs){const c=CARDS[id];return `<button class="tw-card" ${attrs} title="${c.rules}">${cardFace(c)}<em>${c.rules}</em></button>`;}
 function towerRelicHTML(r,attrs=''){return `<button class="tw-relic ${r.rarity}" ${attrs}>${relicIcon(r,56)}<strong>${r.name}</strong><em>${r.desc}</em></button>`;}
 function towerUpHTML(u,attrs=''){return `<button class="tw-relic rare" ${attrs}>${relicIcon({rarity:'rare',frame:'hex',glyph:u.glyph,tint:u.tint,src:u.src},56)}<strong>${u.name}${towerRun.ups[u.id]?' <small>→ Lv.'+(towerRun.ups[u.id]+1)+'</small>':''}</strong><em>${u.desc}</em></button>`;}
-function towerFlagSrc(){const r=towerRun;return r.heroes.length?`assets/emblems/flag-${CARDS[r.heroes[0]].faction}.webp`:'assets/emblems/logo-6.webp';}
+function towerFlagSrc(){const r=towerRun;return r.heroes.length?`assets/emblems/flag-${CARDS[r.heroes[0]].faction}.webp`:'assets/emblems/badge-6.webp';}
 function towerFlags(){const r=towerRun,total=Math.max(TOWER_LIVES,r.lives);return Array.from({length:total},(_,i)=>`<img class="tw-flag ${i<r.lives?'':'lost'}" src="${towerFlagSrc()}" alt="戰旗">`).join('');}
 function towerRingHTML(){
  const r=towerRun,n=(r.seeds||[]).length;
@@ -257,7 +257,7 @@ function towerRender(){
   h=towerHeader()+`<h2>戰利品：選擇一張卡</h2><p class="tw-sub">先點選要加入的卡，再點選牌組中要換掉的卡（主角英雄不能換）；也可以略過。</p><div class="tw-offer">${r.options.map(id=>towerCardHTML(id,`data-offer="${id}"`)).join('')}</div><div class="tw-actions"><button class="outline" id="twSkip">略過獎勵</button></div><h3 id="twReplaceLabel">目前牌組</h3>`+towerDeckStrip(true);
  }else{
   const win=r.stage==='victory';
-  h=`<div class="tw-result"><img class="tw-emblem big" src="${r.heroes.length?'assets/emblems/badge-'+CARDS[r.heroes[0]].faction+'.webp':'assets/emblems/logo-6.webp'}" alt="">${win?'':`<img class="tw-flag lost big" src="${towerFlagSrc()}" alt="">`}</div><h2>${win?'環重新轉動':'戰旗倒下'}</h2><p class="tw-sub">${win?'六枚律種歸位，界環重新轉動。':'止步於「'+towerWhere()+'」。'}</p>${win?'':towerRingHTML()}`+towerDeckStrip(false)+`<div class="tw-actions"><button class="primary" id="twAgain">再爬一次</button><button class="outline" id="twExit">返回</button></div>`;
+  h=`<div class="tw-result"><img class="tw-emblem big" src="${r.heroes.length?'assets/emblems/badge-'+CARDS[r.heroes[0]].faction+'.webp':'assets/emblems/badge-6.webp'}" alt="">${win?'':`<img class="tw-flag lost big" src="${towerFlagSrc()}" alt="">`}</div><h2>${win?'環重新轉動':'戰旗倒下'}</h2><p class="tw-sub">${win?'六枚律種歸位，界環重新轉動。':'止步於「'+towerWhere()+'」。'}</p>${win?'':towerRingHTML()}`+towerDeckStrip(false)+`<div class="tw-actions"><button class="primary" id="twAgain">再爬一次</button><button class="outline" id="twExit">返回</button></div>`;
  }
  towerPanel.innerHTML='<div class="tw-inner">'+h+'</div>';
  towerSelected=null;towerPanel.classList.remove('choosing');
