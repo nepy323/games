@@ -123,6 +123,7 @@ function towerBattleEnded(){
 }
 function towerWhere(){const c=towerChapter(towerRun.floor);return c<0?'序章':c<6?STORY.chapters[c].name:'環中無王';}
 function towerFinish(victory){
+ if(victory){try{localStorage.setItem('six-banners-cleared','1');}catch{}}
  towerRun.stage=victory?'story':'defeat';if(victory)towerRun.story={id:'ending',after:'victory'};towerBest=Math.max(towerBest,victory?TOWER_FLOORS:towerRun.floor-1);towerSave();
  $('modalTitle').textContent=victory?'環已重轉，征程通關！':'機會用盡，這輪征途到此為止。';
  $('modalHint').textContent=victory?'六枚律種已歸位':'止步於「'+towerWhere()+'」';

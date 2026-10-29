@@ -9,11 +9,12 @@ function render(){grid.innerHTML=entries.filter(c=>filter.value==='all'||c.facti
 filter.onchange=render;render();
 
 const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};
-document.getElementById('rivals').innerHTML=RIVALS.map(r=>`<article class="rv" style="--ec:${r.color}"><span class="face">${rvFace(r.art)}</span><div><b>${r.name}</b><span class="tag">${r.label}</span><p>${r.trait}</p><p class="ct">對策：${r.counter}</p><p class="dk">常用牌組：${(r.decks||[]).map(i=>SixData.presets[i]?SixData.presets[i][0]:'').filter(Boolean).join('、')}</p></div></article>`).join('');
+const rvCard=r=>`<article class="rv" style="--ec:${r.color}"><span class="face">${rvFace(r.art)}</span><div><b>${r.name}</b><span class="tag">${r.label}</span><p>${r.trait}</p><p class="ct">對策：${r.counter}</p><p class="dk">常用牌組：${(r.decks||[]).map(i=>SixData.presets[i]?SixData.presets[i][0]:'').filter(Boolean).join('、')}</p></div></article>`;
+document.getElementById('rivals').innerHTML=SixData.factions.map((f,fi)=>{const L=RIVALS.filter(r=>r.faction===fi);return L.length?`<h2 class="rv-fac" style="--fc:${f[2]}"><img src="assets/emblems/badge-${fi}.webp" alt="">${f[0]}<small>${L.length} 位</small></h2><div class="rv-grid">${L.map(rvCard).join('')}</div>`:'';}).join('');
 
 document.getElementById('gtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.t;
  document.querySelectorAll('#gtabs button').forEach(x=>x.classList.toggle('on',x===b));
- document.getElementById('grid').hidden=t!=='cards';for(const id of ['rivals','relics','scenes','story'])document.getElementById(id).hidden=t!==id;filter.hidden=t!=='cards';if(t!=='cards')window.scrollTo(0,0);};
+ document.getElementById('grid').hidden=t!=='cards';for(const id of ['factions','rivals','relics','scenes','story'])document.getElementById(id).hidden=t!==id;filter.hidden=t!=='cards';if(t!=='cards')window.scrollTo(0,0);};
 
 /* 遺物與寶物 */
 const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -42,4 +43,17 @@ const pool=(t,a)=>`<details class="pool"><summary>${esc(t)}（${a.length}）</su
  h+=Object.entries(S.camps).map(([n,c])=>pool('營地同伴・'+n+'（'+c.role+'）',c.lines)).join('');
  h+=Object.entries(S.heroLines).map(([id,o])=>pool('英雄台詞・'+cardName(id),[...o.summon.map(x=>'登場：'+x),...o.skill.map(x=>'技能：'+x)])).join('');
  h+=Object.entries(S.epilogue).map(([id,a])=>pool('後日談・'+cardName(id),a)).join('');
- document.getElementById('story').innerHTML=h;})();
+ let cleared=false;try{cleared=localStorage.getItem('six-banners-cleared')==='1';}catch{}
+ const tab=document.getElementById('storyTab');
+ if(cleared)document.getElementById('story').innerHTML=h;
+ else{tab.classList.add('locked');document.getElementById('story').innerHTML='<div class="lockbox"><b>尚未解鎖</b>通關「征服旅程」後，這裡會整理完整的故事與全部隨機文本。<br>先自己走一遍，會比較有意思。</div>';}})();
+
+/* 勢力介紹：用徽章 */
+(()=>{const F=SixData.factions,B=SixEngine.BANNERS,C=SixData.cards;
+ document.getElementById('factions').innerHTML=`<h2>七個勢力 <small>同一勢力的牌湊到 2、4、6 張，啟動旗印加成</small></h2>`+F.map((f,i)=>{
+  const mine=C.filter(c=>c.faction===i),hero=mine.filter(c=>c.tier==='hero').map(c=>c.name.split('・')[0]),elite=mine.filter(c=>c.tier==='elite').map(c=>c.name);
+  const b=B[i];
+  return `<article class="fac" style="--fc:${f[2]}"><img class="bd" src="assets/emblems/badge-${i}.webp" alt="" loading="lazy"><div><h3>${esc(f[0])}<small>${esc(f[1])}</small></h3>
+  <p class="nm">${mine.length} 張牌${hero.length?'　英雄：'+esc(hero.join('、')):''}${elite.length?'　精英：'+esc(elite.join('、')):''}</p>
+  <div class="mk">${b.text.map((t,k)=>`<span><b>${[2,4,6][k]} 張・${esc(b.name)}</b>${esc(t)}</span>`).join('')}</div>
+  ${i===6?'<p>界律之環洩出的八隻律靈，征服旅程的起始牌組。兩隻特定的律靈相鄰部署會合體成更大的律靈。</p>':''}</div></article>`;}).join('');})();
