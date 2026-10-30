@@ -122,7 +122,7 @@ body:not(.in-battle) #battleView:not([hidden]) #overlay .seal{display:none}
 .resource .energytrack{order:9;flex:0 0 100%;height:9px;margin-top:3px;border-radius:2px;overflow:hidden}
 #energyFill{transition:width .3s ease-out}
 .energytrack.pay{animation:payBar .6s ease-out}
-@keyframes payBar{0%{box-shadow:0 0 0 2px #ff7a6a,0 0 10px #ff7a6a99}100%{box-shadow:0 0 0 0 #ff7a6a00}}
+@keyframes payBar{0%{box-shadow:0 0 0 2px #9fdcff,0 0 10px #9fdcff99}100%{box-shadow:0 0 0 0 #9fdcff00}}
 .resource #fieldBar{justify-content:flex-end}
 #fieldBar:empty{display:none!important}
 #fieldBar .fb-chip{flex-direction:column;width:46px;gap:1px;padding:2px 0;background:none;border:0;align-items:center}
@@ -200,11 +200,11 @@ body.in-battle .yc-stats{font-size:16cqw!important}}
 
 /* 技能扣點動畫：能量數字抖動變紅、飄出「−1 技能名」；能量為負時以紅色顯示 */
 .resource>div{position:relative}
-.resource>div.pay #energy{animation:payShake .5s ease-out;color:#ff7a6a}
+.resource>div.pay #energy{animation:payShake .5s ease-out;color:#9fdcff}
 @keyframes payShake{0%{transform:translateX(0)}15%{transform:translateX(-4px)}35%{transform:translateX(4px)}55%{transform:translateX(-3px)}100%{transform:none}}
-.pay-float{position:absolute;left:30px;top:-6px;font-style:normal;font-size:13px;font-weight:700;color:#ff9a88;white-space:nowrap;pointer-events:none;animation:payFloat 1.1s ease-out forwards;text-shadow:0 1px 3px #000}
+.pay-float{position:absolute;left:30px;top:-6px;font-style:normal;font-size:13px;font-weight:700;color:#bfe6ff;white-space:nowrap;pointer-events:none;animation:payFloat 1.1s ease-out forwards;text-shadow:0 1px 3px #000}
 @keyframes payFloat{from{transform:translateY(0);opacity:1}to{transform:translateY(-26px);opacity:0}}
-#energy.debt{color:#ff7a6a}
+#energy.debt{color:#9fdcff}
 
 /* 盃賽 */
 #cupBtn{display:block;margin:10px auto 0;background:none;border:1px solid #a98a4a;color:#ecd28f;font:600 15px 'Songti TC',Georgia,serif;letter-spacing:.2em;padding:11px 30px;border-radius:3px;min-width:min(320px,80vw)}
@@ -294,9 +294,11 @@ body.cup-open{overflow:hidden}
 .cr .fill{clip-path:inset(calc((1 - var(--f,0)) * 100%) 0 0 0)}
 .cr.on{filter:drop-shadow(0 0 4px #86d2ff99)}
 #crystals.over .cr{filter:drop-shadow(0 0 6px #d8f3ff);animation:crShimmer 1.1s ease-in-out infinite alternate}
-#crystals.debt .hollow polygon{stroke:#e0705f}
 #crystals.pay{animation:payShake .5s ease-out}
-#crystals.pay .cr .hollow polygon{stroke:#ff7a6a}
+#crystals.pay .cr .hollow polygon{stroke:#9fdcff}
 @keyframes crShimmer{from{opacity:.75}to{opacity:1}}
 .yc-cost{background:radial-gradient(circle at 35% 30%,#f2fbff,#8fd0f5 58%,#4c93c6)!important;color:#06263f!important;box-shadow:0 1px 3px #000a,0 0 6px #7fcfff66}
 .cost,.handcard .cost{background:linear-gradient(135deg,#f2fbff,#79c1ec)!important;color:#06263f!important}
+/* 場景背景墊底（visuals.js 設定圖片） */
+#sceneBack{position:fixed;inset:-10px;z-index:-1;background:center 40%/cover no-repeat;filter:blur(3px) brightness(.8) saturate(1);opacity:0;transition:opacity .6s;pointer-events:none}
+body.scene-on #sceneBack{opacity:1}

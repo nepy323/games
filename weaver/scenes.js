@@ -2,3 +2,9 @@ globalThis.SixScenes={"f0_0":{"src":"assets/cards/empire.webp","col":0,"row":0},
 SixScenes.x_portal={src:"assets/cards/portal.svg",col:0,row:0,cols:1,rows:1};
 SixScenes.n_res={src:"assets/cards/inverse-resonance.webp",col:0,row:0,cols:1,rows:1};
 SixScenes.f0_22={src:"assets/cards/squad-empire.webp",col:0,row:0,cols:1,rows:1};SixScenes.f1_22={src:"assets/cards/squad-blood.webp",col:0,row:0,cols:1,rows:1};SixScenes.f3_22={src:"assets/cards/squad-iron.webp",col:0,row:0,cols:1,rows:1};
+
+/* 塔半血的護印（圖鑑戰術卡）沿用各勢力隨軍單位原本的卡面插畫 */
+for(const [n,d] of [[0,'f0_21'],[1,'f1_20'],[2,'f2_20'],[3,'f3_20'],[4,'f4_20'],[5,'f5_20']])if(globalThis.SixScenes[d])globalThis.SixScenes['guard_'+n]=globalThis.SixScenes[d];
+
+/* 第二英雄的卡牌插畫（整張方圖） */
+for(let n=0;n<6;n++)globalThis.SixScenes['f'+n+'_30']={src:'assets/cards/hero-f'+n+'_30.webp',col:0,row:0,cols:1,rows:1};

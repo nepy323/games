@@ -1,8 +1,9 @@
-/* 牌組三層入口：旗系精編（六旗各一套純旗牌組）／名將戰法（跨旗流派）／自由編成 */
+/* 牌組三層入口：旗系精編（六旗各一套純旗牌組）／英雄陣容（跨旗，以英雄為核心）／自由編成 */
 (()=>{
- const THEME=[0,1,2,3,4,5,6,7],BANNER=[8,9,10,11,12,13,14];
+ const THEME=[0,1,2,3,4,5,6,7,21,22,23,24],BANNER=[8,15,9,16,10,17,11,18,12,19,13,20,14]; /* 每勢力兩套（主戰／輔助英雄各一），律靈一套 */
+ const facOf=i=>{const c={};for(const id of presets[i][2]){const f=CARDS[id].faction;c[f]=(c[f]||0)+1;}return +Object.keys(c).sort((a,b)=>c[b]-c[a])[0];};
  const box=document.createElement('section');box.id='presetPicker';
- box.innerHTML='<div class="pp-tabs"><button data-g="banner">旗系精編</button><button data-g="theme">名將戰法</button><button data-g="free">自由編成</button></div><div class="pp-note"></div><div class="pp-list"></div>';
+ box.innerHTML='<div class="pp-tabs"><button data-g="banner">旗系精編</button><button data-g="theme">英雄陣容</button><button data-g="free">自由編成</button></div><div class="pp-note"></div><div class="pp-list"></div>';
  const layout=document.querySelector('#deckView .deck-layout');layout.before(box);
  let group=null;
  const same=(a,b)=>a.length===b.length&&a.every((id,i)=>id===b[i]);
@@ -13,9 +14,9 @@
   box.querySelectorAll('.pp-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.g===group));
   const note=box.querySelector('.pp-note'),list=box.querySelector('.pp-list');
   if(group==='free'){note.textContent='從下方卡池自由挑八張；同一勢力湊滿 2／4／6 張可解鎖旗印。';list.innerHTML='';return;}
-  note.textContent=group==='banner'?'六面勢力各一套：整副同旗，旗印直達最高檔。':'跨旗流派：把不同勢力的長處湊成一套戰法。';
+  note.textContent=group==='banner'?'每個勢力兩套（對應兩位英雄的打法）：整副同旗，旗印直達最高檔。':'英雄陣容：以一位英雄為核心，跨勢力挑出最合拍的牌，湊成一套打法。';
   const idx=group==='banner'?BANNER:THEME;
-  list.innerHTML=idx.map(i=>{const p=presets[i],f=group==='banner'?factions[i-8]:null;return `<button class="pp-item ${cur===i?'on':''}" data-i="${i}" ${f?`style="--f:${f[2]}"`:''}>${f?`<span class="pp-crest">${SixPresentation.crest(i-8)}</span>`:''}<span class="pp-txt"><b>${p[0]}</b><small>${p[1]}</small></span></button>`;}).join('');
+  list.innerHTML=idx.map(i=>{const p=presets[i],fi=group==='banner'?facOf(i):-1,f=fi>=0?factions[fi]:null;return `<button class="pp-item ${cur===i?'on':''}" data-i="${i}" ${f?`style="--f:${f[2]}"`:''}>${f?`<span class="pp-crest">${SixPresentation.crest(fi)}</span>`:''}<span class="pp-txt"><b>${p[0]}</b><small>${p[1]}</small></span></button>`;}).join('');
  }
  box.addEventListener('click',e=>{
   const t=e.target.closest('.pp-tabs button');if(t){group=t.dataset.g;box.dataset.touched='1';paint();return;}
@@ -29,7 +30,7 @@
  function paintHero(){
   heroBox.querySelector('.hp-row').innerHTML=Object.keys(SixEngine.HEROES).filter(id=>!CARDS[id].aiOnly).map(id=>{const c=CARDS[id],f=factions[c.faction];return `<button class="hp-av ${draftHero===id?'on':''}" data-hero="${id}" style="--f:${f[2]}" title="${c.name}"><span class="hp-face">${artSVG(id,'portrait')}</span><small>${c.name.split('・')[0]}</small></button>`;}).join('');
   const id=draftHero&&SixEngine.HEROES[draftHero]&&!CARDS[draftHero].aiOnly?draftHero:Object.keys(SixEngine.HEROES).filter(k=>!CARDS[k].aiOnly)[0],H=SixEngine.HEROES[id],c=CARDS[id],f=factions[c.faction];
-  heroBox.querySelector('.hp-detail').innerHTML=`<b style="color:${f[2]}"><img class="hp-skill" src="assets/icons/skill-${id}.webp" alt="" onerror="this.onerror=null;this.src=window.SKILL_DOT||''">${c.name}</b><span>登場：${H.cond} ${H.need}${H.timeNeed?'（或 '+H.timeNeed+' 秒）':''}，花 ◆${c.cost+SixEngine.HERO_SUMMON_EXTRA}</span><span>主動「${H.skill}」：${H.desc}</span>${H.hs?`<span>計數「${H.hs.name}」每命中 ${H.hs.need} 次：${H.hs.desc}</span>`:''}`;
+  heroBox.querySelector('.hp-detail').innerHTML=`<b style="color:${f[2]}"><img class="hp-skill" src="assets/icons/skill-${id}.webp" alt="" onerror="this.onerror=null;this.src=window.SKILL_DOT||''">${c.name}</b><span>登場：${H.cond} ${H.need}${H.timeNeed?'（或 '+H.timeNeed+' 秒）':''}，花 ◆${c.cost+SixEngine.HERO_SUMMON_EXTRA}</span><span>主動「${H.skill}」（花 ${SixEngine.HERO_ACTIVE_COST} 點）：${H.desc}</span>${H.hs?`<span>計數「${H.hs.name}」每命中 ${H.hs.need} 次（花 ${SixEngine.HERO_COUNTER_COST} 點）：${H.hs.desc}</span>`:''}`;
  }
  heroBox.addEventListener('click',e=>{const b=e.target.closest('.hp-av');if(!b)return;draftHero=b.dataset.hero;paintHero();renderDraft();});
  const _od=openDeck;openDeck=function(){box.dataset.touched='';_od.apply(this,arguments);draftHero=heroSlot;paintHero();paint();renderDraft();filter=String(CARDS[heroSlot].faction);$('factionFilters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.f===filter));renderCollection();};

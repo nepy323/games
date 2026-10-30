@@ -39,14 +39,14 @@ const towerScale=(kind,f)=>kind==='boss'?1.4:(kind==='finale'?1.1:kind==='guardi
 const towerEnergy=(kind,f)=>kind==='boss'?2:kind==='finale'?1:(kind==='guardian'&&f>=7)||f>=8?1:0;
 /* 維索的軍械：以 AI 對 AI 模擬挑選（自動操作的玩家牌組勝率約 26%，真人手動會更高）。調整難度先改這裡與 towerScale。 */
 const TOWER_TROOP_ART=['sd_0','sd_2','sd_4','sd_6','sd_8','sd_10'],TOWER_ELITE_ART=['sd_1','sd_3','sd_5','sd_7','sd_9','sd_11'];
-const towerBossDeck=['f3_2','f4_1','f0_20','f0_21','f2_21','f3_21','n_fire','f0_8'];
+const towerBossDeck=['f3_2','f4_1','f0_20','f0_3','f2_21','f3_21','n_fire','f0_8'];
 function towerMakeNode(kind,floor){
  if(kind==='camp')return {kind};
  const ch=towerChapter(floor);let base,cm,enemy,title;
  if(kind==='guardian'){const c=STORY.chapters[ch];base=presets[8+c.faction];cm=c.guardian;title=c.guardian.name;}
  else if(kind==='finale'){base=towerPick(presets.slice(8));cm=STORY.finale.guard;title=cm.name;}
  else if(kind==='boss'){base=['最後的守環者','維索的守衛與軍械',towerBossDeck];cm=STORY.finale.boss;title=cm.name;}
- else if(floor===1){base=['橋哨守軍','序章',['f0_0','f0_1','f0_2','f0_5','f0_10','f0_11','f0_20','f0_21'],[]];cm=STORY.prologueGuard;title=cm.name;}
+ else if(floor===1){base=['橋哨守軍','序章',['f0_0','f0_1','f0_2','f0_5','f0_10','f0_11','f0_20','f0_3'],[]];cm=STORY.prologueGuard;title=cm.name;}
  else{ /* 章節中的一般戰與精英戰：該勢力的守軍／精銳，不再出現與劇情無關的隨機指揮官 */
   const c=STORY.chapters[ch],f=c.faction;base=ch===0&&kind!=='elite'?presets[0]:presets[8+f];
   cm={name:c.place+(kind==='elite'?'精銳':'守軍'),art:kind==='elite'?TOWER_ELITE_ART[f]:TOWER_TROOP_ART[f],glyph:'旗',color:c.guardian.color,style:c.guardian.style,label:c.guardian.label,note:c.name+(kind==='elite'?' · 帶著英雄的精銳':' · 守住此境的部隊')};title=cm.name;}

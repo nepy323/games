@@ -4,5 +4,9 @@ Object.assign(globalThis.SixArt,{"paradox":{"src":"assets/units/paradox.webp","w
 Object.assign(globalThis.SixArt,{"f4_22":{"src":"assets/units/summons.webp","width":1254,"height":1254,"portrait":[33,91,397,538],"front":[518,105,249,518],"back":[914,85,254,542]}});
 Object.assign(globalThis.SixArt,{"f4_23":{"src":"assets/units/forest-b.webp","width":1086,"height":1448,"portrait":[11,700,424,344],"front":[469,700,224,345],"back":[783,700,249,345]}});
 
-/* 新增六位英雄沿用現有單位圖（日後有專屬圖再換） */
-for(const [id,donor] of [['f0_30','f0_3'],['f1_30','f1_20'],['f2_30','f2_20'],['f3_30','f3_20'],['f4_30','f4_20'],['f5_30','f5_3']])if(globalThis.SixArt[donor])globalThis.SixArt[id]=globalThis.SixArt[donor];
+/* 新增六位英雄的專屬人物圖（肖像／正面／背面，一張一位） */
+Object.assign(globalThis.SixArt,{"f0_30":{"src":"assets/units/hero-f0_30.webp","width":2172,"height":724,"portrait":[29,5,677,700],"front":[946,9,295,708],"back":[1657,7,299,706]},"f1_30":{"src":"assets/units/hero-f1_30.webp","width":2172,"height":724,"portrait":[43,0,743,719],"front":[994,8,340,707],"back":[1653,3,365,703]},"f2_30":{"src":"assets/units/hero-f2_30.webp","width":2172,"height":724,"portrait":[40,0,672,708],"front":[781,9,542,704],"back":[1574,9,542,700]},"f3_30":{"src":"assets/units/hero-f3_30.webp","width":2172,"height":724,"portrait":[13,7,790,693],"front":[888,8,508,698],"back":[1588,8,485,698]},"f4_30":{"src":"assets/units/hero-f4_30.webp","width":2171,"height":724,"portrait":[22,12,867,706],"front":[971,8,385,702],"back":[1608,10,413,698]},"f5_30":{"src":"assets/units/hero-f5_30.webp","width":2172,"height":724,"portrait":[0,12,873,699],"front":[890,9,490,688],"back":[1586,10,494,686]}});
+
+
+/* 守城人（塔半血自動出現的單位）有自己的 id，圖用各勢力原本的隨軍單位 */
+for(const [n,donor] of [[0,'f0_21'],[1,'f1_20'],[2,'f2_20'],[3,'f3_20'],[4,'f4_20'],[5,'f5_20']])if(globalThis.SixArt[donor])globalThis.SixArt['guard_'+n]=globalThis.SixArt[donor];

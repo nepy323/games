@@ -5,7 +5,13 @@ const scene=c=>{const a=SixScenes[c.id];if(!a){const art=SixArt[c.id];if(!art)re
 const icon=scene;
 let cleared0=false;try{cleared0=localStorage.getItem('six-banners-cleared')==='1';}catch{}
 const entries=SixData.cards.filter(c=>(SixScenes[c.id]||SixArt[c.id])&&(!c.aiOnly||cleared0));
-/* 律靈融煉：兩隻特定律靈在 6 秒內近距離先後部署會融煉。蝕與闇不融煉（它們是圖騰），不列入。 */
+/* 塔半血的護印：圖鑑以戰術卡呈現（卡名就是單位名，身分由「護印英魂」分類標示，費用顯示 0；戰場上只跳出「護印降臨」） */
+{const GT={0:'攻速光環，遠程輸出',1:'血鏈彈跳，吸血',2:'鐘聲詛咒周圍敵軍',3:'真實傷害（無視減傷）',4:'孢子彈跳，治療友軍並緩速',5:'雙發套索，緩速，可對空'};
+ const rule=f=>`庇護${factions[f][0]}的英魂術式，於防禦塔的血量降至一半時自動啟動<br>英魂技能：`;
+ for(const [n,g] of Object.entries(SixEngine.GUARDIANS)){const f=+n,at=entries.map(c=>c.faction).lastIndexOf(f)+1;
+  entries.splice(at,0,{id:g.id,name:g.name,faction:f,type:'tactic',effect:'summon',kindLabel:'護印英魂',cost:0,n:1,tier:'standard',category:'護印英魂',element:g.element,rules:rule(f)+GT[f]});}
+ const at6=entries.map(c=>c.faction).lastIndexOf(6)+1;
+ entries.splice(at6,0,{id:'fuse_earth',name:'逆合靈',faction:6,type:'tactic',effect:'summon',kindLabel:'護印英魂',cost:0,n:1,tier:'standard',category:'護印英魂',element:'律',rules:rule(6)+'逆地脈、逆焰嵐、逆極光合靈擇一'});}/* 律靈融煉：兩隻特定律靈在 6 秒內近距離先後部署會融煉。蝕與闇不融煉（它們是圖騰），不列入。 */
 {const byId=Object.fromEntries(SixData.cards.map(c=>[c.id,c])),FU={fuse_earth:{cat:'前排',line:'大地與生機纏在一起的大型律靈。'},fuse_storm:{cat:'射手',line:'烈焰被風推成一道火嵐。'},fuse_aurora:{cat:'支援',line:'冰與光折射成的極光。'}};
  for(const f of SixEngine.FUSIONS){const s=SixEngine.summons[f.into],a=byId[f.a],b=byId[f.b],m=FU[f.into];if(!s||!a||!b||!m)continue;
   const W=SixEngine.FUSE_WEAK,BW=SixEngine.FUSE_BURST_WEAK,fmtB=k=>`融煉瞬間對周圍 ${f.burst.r} 範圍敵軍造成 ${Math.round(f.burst.dmg*k)} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
@@ -17,7 +23,10 @@ const entries=SixData.cards.filter(c=>(SixScenes[c.id]||SixArt[c.id])&&(!c.aiOnl
  entries.splice(at2,0,{id:'paradox',name:o.name,faction:6,type:'troop',cost:SixData.cards.find(c=>c.id==='n_res').cost,hp:Math.round(o.hp*OB),dmg:Math.round(o.dmg*OB),n:1,category:'前排',tier:'elite',race:'悖靈',element:'律',
   rules:`逆反共振召出。繼承被獻祭律靈的特性：岩甲減傷、芽露回復、風矢加速、焰芯濺射、霜縛多打一個目標、微光治療、蝕根腐蝕、闇幕吸血。減傷 20%，一次攻擊 3 個目標，命中減速、吸血、可對空。${fm}數值為基準（獻祭 1／2 組再 ×1.1／×1.2）。牌組中律靈牌低於 6 張時，只能存在 12 秒。`});}
 factions.forEach((f,i)=>filter.insertAdjacentHTML('beforeend',`<option value="${i}">${f[0]}</option>`));
-function render(){grid.innerHTML=entries.filter(c=>filter.value==='all'||c.faction===+filter.value).map(c=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${c.race||'—'} · ${c.category||'—'} · ${c.element||'物理'}</small><p>${c.rules||c.desc||''}</p></div></article>`).join('');}
+/* 排序：勢力 → 英雄 → 菁英 → 一般生物 → 建築 → 戰術（護印、援軍、法術、狀態）→ 費用 */
+const KR={'護印英魂':0,'援軍':1,'禁忌召喚':1,'法術':2,'狀態':3};
+const grp=c=>c.tier==='hero'?0:c.type==='troop'?(c.tier==='elite'?1:2):c.type==='building'?3:4+(KR[tacticKind(c)]??3)*.1;
+function render(){grid.innerHTML=entries.map((c,i)=>[c,i]).filter(([c])=>filter.value==='all'||c.faction===+filter.value).sort(([a,i],[b,j])=>a.faction-b.faction||grp(a)-grp(b)||a.cost-b.cost||i-j).map(([c])=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${[c.race,c.category].filter(Boolean).join(' · ')||'—'}</small><p>${c.rules||c.desc||''}</p></div></article>`).join('');}
 filter.onchange=render;render();
 
 const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};

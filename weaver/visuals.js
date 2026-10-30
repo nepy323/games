@@ -53,7 +53,11 @@ function drawAnimatedUnit(u){
  if(u.zone){ctx.save();const zr=u.zone.r*(.97+.03*Math.sin(battle.clock*3)),left=u.totem&&u.duration?Math.max(0,u.life/u.duration):1;ctx.globalAlpha=.14+.06*left;ctx.fillStyle=u.zone.color;ctx.beginPath();ctx.ellipse(u.x,u.y+4,zr,zr*.62,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.75;ctx.strokeStyle=u.zone.color;ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.ellipse(u.x,u.y+4,zr,zr*.62,0,-Math.PI/2,-Math.PI/2+Math.PI*2*left);ctx.stroke();ctx.restore();}
  if(u.buffs&&u.team!==0&&!u.tower){const ring=[['curse','#6fae5a'],['rush','#a070e6'],['weak','#c58cf0'],['slow','#7fd0ff']].filter(([k])=>battle.has(u,k));ring.forEach(([k,col],i)=>{ctx.save();ctx.globalAlpha=.8;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(u.x,u.y+6,u.r+4+i*3,5+i*1.5,0,0,Math.PI*2);ctx.stroke();ctx.restore();});}
  if(u.buffs&&!u.tower&&u.type!=='building'&&(battle.has(u,'deathward')||u.deathAt)){const k=(battle.clock*.9)%1,pu=.5+.5*Math.sin(battle.clock*7);ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=(u.deathAt?.9:.55)+.2*pu;ctx.strokeStyle=u.deathAt?'#ff7ad9':'#b58cff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(u.x,u.y+4,u.r+6,7,0,0,Math.PI*2);ctx.stroke();ctx.restore();drawFx('halo',u.x,u.y+2,(u.r+14)*2.6,(u.r+14)*1.3,k,1,0,.8);if(!reducedMotion)for(let i=0;i<3;i++){const q=(battle.clock*.7+i/3)%1;drawFx('spark_s',u.x+Math.sin(i*2.1+battle.clock)*(u.r+2),u.y-q*34,18,18,q,1,0,.8);}}
- const phase=u.walk*.20,flight=u.flying?10+(reducedMotion?0:Math.sin(battle.clock*4+u.id)*2.5):0;
+
+ if(u.guardian){const [gc,grow]=GUARD_COL[u.guardFaction]||GUARD_COL[6],left=u.ttl===undefined?30:u.ttl,blink=left<5&&!reducedMotion?(Math.sin(battle.clock*14)>0?1:.35):1,sc=left<5?.65+.35*left/5:1,k=(battle.clock*.4)%1;
+  ctx.save();ctx.globalAlpha=blink;drawFx('circle',u.x,u.y+4,u.r*5.6*sc,u.r*2.8*sc,k,grow,0,.95);drawFx('circle',u.x,u.y+4,u.r*3.4*sc,u.r*1.7*sc,(k+.5)%1,grow,0,.8);ctx.restore();
+  const ta=battle.clock-(u.guardAt||0);if(ta<3&&u.guardTower&&!reducedMotion){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=(1-ta/3)*.8;ctx.strokeStyle=gc;ctx.lineWidth=2.2;ctx.setLineDash([8,6]);ctx.lineDashOffset=-battle.clock*40;ctx.beginPath();ctx.moveTo(u.guardTower.x,u.guardTower.y-30);ctx.lineTo(u.x,u.y-20);ctx.stroke();ctx.restore();}}
+ const dropK=u.guardian&&!reducedMotion?Math.max(0,1-(battle.clock-(u.guardAt||-9))/.6):0;const phase=u.walk*.20,flight=(u.flying?10+(reducedMotion?0:Math.sin(battle.clock*4+u.id)*2.5):0)+dropK*dropK*170;
  const bob=!reducedMotion&&u.moving&&!u.flying?Math.abs(Math.sin(phase))*(large?1.8:2.5):0;
  const swing=!reducedMotion&&u.moving?Math.sin(phase)*(large?.014:.032):0;
  const attackAge=battle.clock-u.attackAt,hitAge=battle.clock-u.hitAt;
@@ -63,7 +67,7 @@ function drawAnimatedUnit(u){
  ctx.save();ctx.fillStyle='#07100888';ctx.strokeStyle=tc;ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(u.x,u.y+5,u.r+3,5,0,0,Math.PI*2);ctx.fill();ctx.stroke();
  if(u.role==='魂'&&!reducedMotion){ctx.globalAlpha=.15;ctx.drawImage(im,...r,px-w/2-(u.moveDX||0)*7,py+10-h-flight-(u.moveDY||0)*7,w,h);ctx.globalAlpha=1;}
  ctx.translate(px,py+10-flight-bob);ctx.rotate(swing);if(!reducedMotion&&hitAge<.085)ctx.filter='brightness(1.8) saturate(.65)';ctx.shadowColor=u.team===0?'rgba(255,255,255,.45)':'rgba(255,70,55,.8)';ctx.shadowBlur=1.2*viewScale();ctx.drawImage(im,...r,-w/2,-h,w,h);ctx.restore();
- if(u.tier==='hero'||u.tier==='elite'){ctx.save();const hero=u.tier==='hero',col=hero?'#ffd36a':'#9fc2ea',pulse=reducedMotion?.6:.55+.45*Math.sin(battle.clock*4);
+ if(u.tier==='hero'||u.tier==='elite'){ctx.save();const hero=u.tier==='hero',col=hero?'#ffd36a':u.guardian?(GUARD_COL[u.guardFaction]||GUARD_COL[6])[0]:'#9fc2ea',pulse=reducedMotion?.6:.55+.45*Math.sin(battle.clock*4);
   ctx.globalAlpha=.35+.4*pulse;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.shadowColor=col;ctx.shadowBlur=hero?14:8;ctx.beginPath();ctx.ellipse(u.x,u.y+5,u.r+8,7,0,0,Math.PI*2);ctx.stroke();
   ctx.globalAlpha=1;ctx.shadowBlur=0;
   const hsd=SixEngine.HEROES[u.artId],sk=SixEngine.SKILLS[u.ability]||(hsd&&hsd.hs),cnt=SixEngine.SKILLS[u.ability]?u.skillHits:u.hcount;if(sk){const pr=Math.min(1,(cnt||0)/sk.need);const rc=u.dark?'#b58cff':'#ffe29a';ctx.strokeStyle=rc;ctx.lineWidth=3;ctx.shadowColor=rc;ctx.shadowBlur=pr>=1-1/sk.need?10:3;ctx.beginPath();ctx.ellipse(u.x,u.y+5,u.r+8,7,0,-Math.PI/2,-Math.PI/2+Math.PI*2*pr);ctx.stroke();ctx.shadowBlur=0;}
@@ -90,6 +94,7 @@ function drawProjectiles(){for(const p of battle.projectiles){
 }}
 /* 像素特效（assets/fx，64 像素格、9 列色彩）：打擊火花、斬擊、逆反共振魔法陣。疊加發光＋平滑縮放；圖沒載入或開了減少動態就退回原本的線條。 */
 /* 屬性→色列：帝國（戰令／火藥）金橘、血誓紅、永寂（靈魂／腐朽）紫綠、玄鐵（符文）青藍、蒼林（自然）綠、裂牙（疾風）土黃，物理白，律／混沌紫 */
+const GUARD_COL={0:['#ffd36a',4],1:['#ff6a6a',7],2:['#dfe6ff',5],3:['#6fd0ff',2],4:['#7be07b',3],5:['#ff9a4a',0],6:['#b58cff',1]};
 const FXROW={聖:4,血:7,暗:1,毒:3,火:0,火焰:0,火藥:0,血誓:7,冰霜:2,神聖:4,戰令:4,物理:5,疾風:4,自然:3,腐朽:3,靈魂:1,律:1,混沌:1,符文:2};
 const fxSheets={};
 function fxSheet(name){let i=fxSheets[name];if(!i){i=fxSheets[name]=new Image();i.src='assets/fx/'+name+'.png';}return i.complete&&i.naturalWidth?i:null;}
@@ -112,6 +117,9 @@ function drawBattleEffects(){for(const f of battle.fx){const a=Math.max(0,f.life
  else if(f.type==='towerfall'){const offs=[[0,-8,0],[-28,8,.1],[26,4,.2],[-10,-30,.32],[12,14,.42]];offs.forEach(([dx,dy,dl])=>{const a2=(age-dl)/(1-dl);if(a2>0&&a2<1)drawFx('explosion',f.x+dx,f.y+dy,150,150,a2,0,0,.95,128);});}
  else if(f.type==='fusion'){drawFx('spiral',f.x,f.y-8,112,112,age,1,0,.95);for(let i=0;i<6;i++){const ang=i*1.047+(f.seed||0),rr=(1-age)*72;drawFx('spark_s',f.x+Math.cos(ang)*rr,f.y-8+Math.sin(ang)*rr*.6,30,30,age,1,0,.9);}}
  else if(f.type==='deathward'){drawFx('spiral',f.x,f.y-14,Math.min(120,f.r*2.6),Math.min(120,f.r*2.6),age,1,0,.95);drawFx('burst_s',f.x,f.y-14,70,70,age,1,0,.8);ctx.globalCompositeOperation='lighter';ctx.lineWidth=3*a;ctx.strokeStyle='#c8a0ff';ctx.beginPath();ctx.ellipse(f.x,f.y+4,f.r*(.4+age),f.r*(.4+age)*.5,0,0,Math.PI*2);ctx.stroke();ctx.globalCompositeOperation='source-over';ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText('對抗死亡',f.x,f.y-34-age*18);ctx.fillStyle='#e6c8ff';ctx.fillText('對抗死亡',f.x,f.y-34-age*18);}
+ else if(f.type==='guardfall'){const [gc,grow]=GUARD_COL[f.f]||GUARD_COL[6],land=.43;ctx.globalCompositeOperation='lighter';
+  if(age<land){const q=age/land;ctx.globalAlpha=.3+.5*q;ctx.fillStyle=gc;ctx.beginPath();ctx.ellipse(f.x,f.y+4,24+30*q,10+12*q,0,0,Math.PI*2);ctx.fill();const gr=ctx.createLinearGradient(0,f.y-220,0,f.y);gr.addColorStop(0,'#0000');gr.addColorStop(1,gc);ctx.globalAlpha=.55*(1-q*.4);ctx.fillStyle=gr;ctx.fillRect(f.x-10-8*q,f.y-220,20+16*q,220);drawFx('circle',f.x,f.y+4,150*q,75*q,q*.4,grow,0,.9);}
+  else{const q=(age-land)/(1-land);drawFx('burst_l',f.x,f.y-8,130,100,Math.min(.99,q*1.2),grow,0,.9);drawFx('circle',f.x,f.y+4,180,90,Math.min(.99,.4+q*.6),grow,0,.95);ctx.globalAlpha=(1-q)*.9;ctx.lineWidth=4*(1-q)+1;ctx.strokeStyle=gc;ctx.beginPath();ctx.ellipse(f.x,f.y+4,100*q+10,(100*q+10)*.5,0,0,Math.PI*2);ctx.stroke();}}
  else if(f.type==='chain'){const col=SixPresentation.colors[f.element]||'#ffe3ad',x1=f.x,y1=f.y-18,x2=f.tx,y2=f.ty-18,dx=x2-x1,dy=y2-y1,n=Math.max(3,Math.round(Math.hypot(dx,dy)/22)),nx=-dy/(Math.hypot(dx,dy)||1),ny=dx/(Math.hypot(dx,dy)||1);ctx.globalCompositeOperation='lighter';
   for(const [w,al] of [[7,.28],[3.2,.8],[1.4,1]]){ctx.lineWidth=w;ctx.strokeStyle=al>.9?'#fff':col;ctx.globalAlpha=a*al;ctx.beginPath();ctx.moveTo(x1,y1);for(let i=1;i<n;i++){const t=i/n,j=(fxRnd(f,i+Math.floor(age*6))-.5)*16;ctx.lineTo(x1+dx*t+nx*j,y1+dy*t+ny*j);}ctx.lineTo(x2,y2);ctx.stroke();}
   drawFx('spark_s',x2,y2,40,40,age,FXROW[f.element]??5);}
@@ -134,3 +142,8 @@ function drawFuseHints(){
  ctx.beginPath();ctx.arc(r.x,r.y,10,0,Math.PI*2);ctx.fillStyle='#ffe29a';ctx.fill();ctx.globalAlpha=1;
  ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(r.n>1?'可獻祭這兩組':'可獻祭這組',r.x,r.y-18);ctx.fillStyle='#ffe29a';ctx.fillText(r.n>1?'可獻祭這兩組':'可獻祭這組',r.x,r.y-18);ctx.restore();
 }
+
+/* 場景背景墊底：戰場兩側的空白不留黑，改用目前戰場的場景圖放大模糊壓暗墊著 */
+(()=>{const el=document.createElement('div');el.id='sceneBack';document.body.prepend(el);let last='';
+ setInterval(()=>{const id=typeof currentMap!=='undefined'&&currentMap&&currentMap.id;if(id&&id!==last){last=id;el.style.backgroundImage='url(assets/battlefields/'+id+'.webp)';}
+  const on=typeof view!=='undefined'&&view==='battle';document.body.classList.toggle('scene-on',on);},300);})();

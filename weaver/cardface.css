@@ -97,3 +97,172 @@ body.in-battle .battlefield-name{display:none!important}
 .yc-role{background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
 .yc-art .yc-class .yc-role{width:16cqw!important;height:16cqw!important}
 .yc-art .yc-kw .yc-role{width:11cqw!important;height:11cqw!important}
+
+/* ===== 英雄卡：厚金屬框＋雙層描邊＋頂部徽記＋流光 ===== */
+.ycard.hero{border:0;padding:7px;gap:4px;border-radius:9px;
+ background:linear-gradient(135deg,#fff3c0 0%,#d9a93a 18%,#7b5316 38%,#f2cf6e 55%,#8a5e18 74%,#ffe9a0 100%) border-box;
+ box-shadow:0 0 0 1px #2a1a04,inset 0 0 0 1px #fff2b8aa,inset 0 0 0 4px #5a3b0c,0 0 18px #ffd36a99,0 4px 12px #000a}
+.ycard.hero::before{content:"";position:absolute;inset:3px;border-radius:7px;border:1px solid #2b1a05;pointer-events:none;box-shadow:inset 0 0 0 1px #f6d57a66}
+.ycard.hero .yc-top{background:linear-gradient(#5c4416,#2a1d08);border:1px solid #f0c458;box-shadow:inset 0 0 6px #0009}
+.ycard.hero .yc-top strong{color:#ffe9a8;text-shadow:0 0 8px #ffbf3a99,0 1px 1px #000}
+.ycard.hero .yc-art{border:2px solid #f6d57a;outline:1px solid #2a1a04;box-shadow:inset 0 0 14px #0009}
+.ycard.hero .yc-stats{background:linear-gradient(#3b2a0c,#1d1405);border:1px solid #c9962f;border-radius:3px}
+.ycard.hero .yc-art::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 40%,#ffffff33 50%,transparent 60%);background-size:260% 100%;animation:heroSheen 4.5s ease-in-out infinite}
+@keyframes heroSheen{0%,55%{background-position:140% 0}100%{background-position:-60% 0}}
+@media(prefers-reduced-motion:reduce){.ycard.hero .yc-art::after{animation:none}}
+
+/* ===== 菁英卡：鋼藍斜紋框＋銀色描邊（比英雄收斂） ===== */
+.ycard.elite{border:0;padding:6px;border-radius:8px;
+ background:linear-gradient(135deg,#e6f0fb 0%,#8fb3dc 20%,#34506f 42%,#a9c8ee 60%,#2d435d 80%,#dbe9f8 100%) border-box;
+ box-shadow:0 0 0 1px #0c1722,inset 0 0 0 1px #eaf4ffaa,inset 0 0 0 3px #263a52,0 0 10px #7fb0e866,0 3px 10px #0009}
+.ycard.elite::before{content:"";position:absolute;inset:2px;border-radius:6px;border:1px solid #0e1a28;pointer-events:none}
+.ycard.elite .yc-top{background:linear-gradient(#34506f,#18222f);border:1px solid #a9c8ee;box-shadow:inset 0 0 5px #0009}
+.ycard.elite .yc-top strong{color:#e6f2ff;text-shadow:0 1px 1px #000}
+.ycard.elite .yc-art{border:2px solid #a9c8ee;outline:1px solid #0e1a28;box-shadow:inset 0 0 10px #0009}
+.ycard.elite .yc-stats{background:linear-gradient(#233246,#131a24);border:1px solid #6d90b8;border-radius:3px}
+
+/* ===== 建築卡：木框＋鉚釘 ===== */
+.ycard.bld{border:0;padding:6px;border-radius:7px;
+ background:
+  radial-gradient(circle at 7px 7px,#d9c48c 0 1.6px,#5a4524 2.4px,transparent 3.2px),
+  radial-gradient(circle at calc(100% - 7px) 7px,#d9c48c 0 1.6px,#5a4524 2.4px,transparent 3.2px),
+  radial-gradient(circle at 7px calc(100% - 7px),#d9c48c 0 1.6px,#5a4524 2.4px,transparent 3.2px),
+  radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),#d9c48c 0 1.6px,#5a4524 2.4px,transparent 3.2px),
+  repeating-linear-gradient(90deg,#00000014 0 1px,transparent 1px 7px),
+  repeating-linear-gradient(0deg,#5a371a 0 5px,#6e4523 5px 9px,#5d3a1c 9px 13px) border-box;
+ box-shadow:0 0 0 1px #24140a,inset 0 0 0 1px #a9814f88,inset 0 0 0 3px #3a2412,0 3px 10px #000a}
+.ycard.bld .yc-top{background:repeating-linear-gradient(0deg,#6b4423 0 4px,#7a5230 4px 8px);border:1px solid #2e1b0d;box-shadow:inset 0 1px 0 #c9a06a55}
+.ycard.bld .yc-top strong{color:#f3e2bf;text-shadow:0 1px 1px #000}
+.ycard.bld .yc-art{border:2px solid #2e1b0d;outline:1px solid #a9814f66}
+.ycard.bld .yc-stats{background:repeating-linear-gradient(0deg,#5a371a 0 4px,#6b4423 4px 8px);border:1px solid #2e1b0d}
+
+/* ===== 卡框 v3：邊框做舊磨損；文字區塊鋪細碎小花紋（密度依價值：英雄最密） ===== */
+:root{--wd-std:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.03 .5%22 numOctaves=%223%22 seed=%225%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.04 0 0 0 0 0.04 0 0 0 0 0.02 0 0 0 9 -4.1%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.75%22/%3E%3C/svg%3E");--wl-std:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.05 .6%22 numOctaves=%223%22 seed=%229%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.85 0 0 0 0 0.76 0 0 0 0 0.56 0 0 0 9 -4.55%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.55%22/%3E%3Cpath d=%22M69 56l10 4 M1 75l24 -4 M83 92l9 -1 M106 68l21 -3 M36 17l17 4 M89 116l15 2 M15 44l20 2 M63 13l13 -3 M42 121l12 4%22 stroke=%22%23e8d6a8%22 stroke-width=%22.7%22 stroke-opacity=%22.55%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E");--tp-std:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cg fill=%22%23e6d3a0%22 fill-opacity=%220.2%22%3E%3Cpath d=%22M6 3.4l1.1 1.5L6 6.4 4.9 4.9z%22/%3E%3Ccircle cx=%220.6%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%220.6%22 cy=%2211.4%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%2211.4%22 r=%22.55%22/%3E%3Cpath d=%22M6 8.6l.7.9-.7.9-.7-.9z%22/%3E%3Cpath d=%22M0 6l.8-.6.8.6-.8.6z%22/%3E%3Cpath d=%22M10.4 6l.8-.6.8.6-.8.6z%22/%3E%3C/g%3E%3C/svg%3E");--wd-tactic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.03 .5%22 numOctaves=%223%22 seed=%225%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.06 0 0 0 0 0.04 0 0 0 0 0.12 0 0 0 9 -4.1%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.75%22/%3E%3C/svg%3E");--wl-tactic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.05 .6%22 numOctaves=%223%22 seed=%229%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.80 0 0 0 0 0.74 0 0 0 0 1.00 0 0 0 9 -4.55%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.55%22/%3E%3Cpath d=%22M69 56l10 4 M1 75l24 -4 M83 92l9 -1 M106 68l21 -3 M36 17l17 4 M89 116l15 2 M15 44l20 2 M63 13l13 -3 M42 121l12 4%22 stroke=%22%23e4d9ff%22 stroke-width=%22.7%22 stroke-opacity=%22.55%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E");--tp-tactic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cg fill=%22%23d8c8ff%22 fill-opacity=%220.22%22%3E%3Cpath d=%22M6 3.4l1.1 1.5L6 6.4 4.9 4.9z%22/%3E%3Ccircle cx=%220.6%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%220.6%22 cy=%2211.4%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%2211.4%22 r=%22.55%22/%3E%3Cpath d=%22M6 8.6l.7.9-.7.9-.7-.9z%22/%3E%3Cpath d=%22M0 6l.8-.6.8.6-.8.6z%22/%3E%3Cpath d=%22M10.4 6l.8-.6.8.6-.8.6z%22/%3E%3C/g%3E%3C/svg%3E");--wd-ward:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.03 .5%22 numOctaves=%223%22 seed=%225%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.03 0 0 0 0 0.04 0 0 0 0 0.04 0 0 0 9 -4.1%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.75%22/%3E%3C/svg%3E");--wl-ward:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.05 .6%22 numOctaves=%223%22 seed=%229%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.87 0 0 0 0 0.89 0 0 0 0 0.91 0 0 0 9 -4.55%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.55%22/%3E%3Cpath d=%22M69 56l10 4 M1 75l24 -4 M83 92l9 -1 M106 68l21 -3 M36 17l17 4 M89 116l15 2 M15 44l20 2 M63 13l13 -3 M42 121l12 4%22 stroke=%22%23f2f5f7%22 stroke-width=%22.7%22 stroke-opacity=%22.55%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E");--tp-ward:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cg fill=%22%23d6dce1%22 fill-opacity=%220.22%22%3E%3Cpath d=%22M6 3.4l1.1 1.5L6 6.4 4.9 4.9z%22/%3E%3Ccircle cx=%220.6%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%220.6%22 cy=%2211.4%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%2211.4%22 r=%22.55%22/%3E%3Cpath d=%22M6 8.6l.7.9-.7.9-.7-.9z%22/%3E%3Cpath d=%22M0 6l.8-.6.8.6-.8.6z%22/%3E%3Cpath d=%22M10.4 6l.8-.6.8.6-.8.6z%22/%3E%3C/g%3E%3C/svg%3E");--wd-elite:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.03 .5%22 numOctaves=%223%22 seed=%225%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.04 0 0 0 0 0.09 0 0 0 0 0.14 0 0 0 9 -4.1%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.75%22/%3E%3C/svg%3E");--wl-elite:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.05 .6%22 numOctaves=%223%22 seed=%229%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.95 0 0 0 0 0.97 0 0 0 0 1.00 0 0 0 9 -4.55%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.55%22/%3E%3Cpath d=%22M69 56l10 4 M1 75l24 -4 M83 92l9 -1 M106 68l21 -3 M36 17l17 4 M89 116l15 2 M15 44l20 2 M63 13l13 -3 M42 121l12 4%22 stroke=%22%23ffffff%22 stroke-width=%22.7%22 stroke-opacity=%22.55%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E");--tp-elite:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 12 12%22%3E%3Cg fill=%22%23dcecff%22 fill-opacity=%220.26%22%3E%3Cpath d=%22M6 3.4l1.1 1.5L6 6.4 4.9 4.9z%22/%3E%3Ccircle cx=%220.6%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%220.6%22 cy=%2211.4%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%2211.4%22 r=%22.55%22/%3E%3Cpath d=%22M6 8.6l.7.9-.7.9-.7-.9z%22/%3E%3Cpath d=%22M0 6l.8-.6.8.6-.8.6z%22/%3E%3Cpath d=%22M10.4 6l.8-.6.8.6-.8.6z%22/%3E%3C/g%3E%3C/svg%3E");--wd-hero:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.03 .5%22 numOctaves=%223%22 seed=%225%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.18 0 0 0 0 0.11 0 0 0 0 0.02 0 0 0 9 -4.1%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.75%22/%3E%3C/svg%3E");--wl-hero:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.05 .6%22 numOctaves=%223%22 seed=%229%22/%3E%3CfeColorMatrix values=%220 0 0 0 1.00 0 0 0 0 0.95 0 0 0 0 0.71 0 0 0 9 -4.55%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.55%22/%3E%3Cpath d=%22M69 56l10 4 M1 75l24 -4 M83 92l9 -1 M106 68l21 -3 M36 17l17 4 M89 116l15 2 M15 44l20 2 M63 13l13 -3 M42 121l12 4%22 stroke=%22%23fff8d8%22 stroke-width=%22.7%22 stroke-opacity=%22.55%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E");--tp-hero:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%229%22 height=%229%22 viewBox=%220 0 12 12%22%3E%3Cg fill=%22%23ffe49a%22 fill-opacity=%220.32%22%3E%3Cpath d=%22M6 3.4l1.1 1.5L6 6.4 4.9 4.9z%22/%3E%3Ccircle cx=%220.6%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%220.6%22 cy=%2211.4%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%2211.4%22 r=%22.55%22/%3E%3Cpath d=%22M6 8.6l.7.9-.7.9-.7-.9z%22/%3E%3Cpath d=%22M0 6l.8-.6.8.6-.8.6z%22/%3E%3Cpath d=%22M10.4 6l.8-.6.8.6-.8.6z%22/%3E%3C/g%3E%3C/svg%3E");--wd-bld:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.03 .5%22 numOctaves=%223%22 seed=%225%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.08 0 0 0 0 0.04 0 0 0 0 0.02 0 0 0 9 -4.1%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.75%22/%3E%3C/svg%3E");--wl-bld:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Cfilter id=%22f%22 x=%220%22 y=%220%22 width=%22100%%22 height=%22100%%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.05 .6%22 numOctaves=%223%22 seed=%229%22/%3E%3CfeColorMatrix values=%220 0 0 0 0.76 0 0 0 0 0.60 0 0 0 0 0.38 0 0 0 9 -4.55%22/%3E%3C/filter%3E%3Crect width=%22150%22 height=%22150%22 filter=%22url(%23f)%22 opacity=%220.55%22/%3E%3Cpath d=%22M69 56l10 4 M1 75l24 -4 M83 92l9 -1 M106 68l21 -3 M36 17l17 4 M89 116l15 2 M15 44l20 2 M63 13l13 -3 M42 121l12 4%22 stroke=%22%23e6cf9d%22 stroke-width=%22.7%22 stroke-opacity=%22.55%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E");--tp-bld:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cg fill=%22%23e8d4a2%22 fill-opacity=%220.24%22%3E%3Cpath d=%22M6 3.4l1.1 1.5L6 6.4 4.9 4.9z%22/%3E%3Ccircle cx=%220.6%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%220.6%22 r=%22.55%22/%3E%3Ccircle cx=%220.6%22 cy=%2211.4%22 r=%22.55%22/%3E%3Ccircle cx=%2211.4%22 cy=%2211.4%22 r=%22.55%22/%3E%3Cpath d=%22M6 8.6l.7.9-.7.9-.7-.9z%22/%3E%3Cpath d=%22M0 6l.8-.6.8.6-.8.6z%22/%3E%3Cpath d=%22M10.4 6l.8-.6.8.6-.8.6z%22/%3E%3C/g%3E%3C/svg%3E");}
+.ycard{background-image:var(--wl-std),var(--wd-std),linear-gradient(160deg,#2b2a24,#14171a 72%);background-size:150px 150px,150px 150px,auto;background-repeat:repeat,repeat,no-repeat}
+.ycard.tactic{background-image:var(--wl-tactic),var(--wd-tactic),linear-gradient(160deg,#2c2244,#14111f 72%);background-size:150px 150px,150px 150px,auto;background-repeat:repeat,repeat,no-repeat}
+.ycard.ward{background-image:var(--wl-ward),var(--wd-ward),linear-gradient(160deg,#30343a,#121417 72%);background-size:150px 150px,150px 150px,auto;background-repeat:repeat,repeat,no-repeat}
+.ycard.elite{background-image:var(--wl-elite),var(--wd-elite),linear-gradient(135deg,#e6f0fb 0%,#8fb3dc 20%,#34506f 42%,#a9c8ee 60%,#2d435d 80%,#dbe9f8 100%);background-size:150px 150px,150px 150px,auto;background-repeat:repeat,repeat,no-repeat}
+.ycard.hero{background-image:var(--wl-hero),var(--wd-hero),linear-gradient(135deg,#fff3c0 0%,#d9a93a 18%,#7b5316 38%,#f2cf6e 55%,#8a5e18 74%,#ffe9a0 100%);background-size:150px 150px,150px 150px,auto;background-repeat:repeat,repeat,no-repeat}
+.ycard.bld{background-image:var(--wl-bld),var(--wd-bld),radial-gradient(circle at 8px 8px,#d9c48c 0 1.8px,#5a4524 2.6px,transparent 3.4px),radial-gradient(circle at calc(100% - 8px) 8px,#d9c48c 0 1.8px,#5a4524 2.6px,transparent 3.4px),radial-gradient(circle at 8px calc(100% - 8px),#d9c48c 0 1.8px,#5a4524 2.6px,transparent 3.4px),radial-gradient(circle at calc(100% - 8px) calc(100% - 8px),#d9c48c 0 1.8px,#5a4524 2.6px,transparent 3.4px),repeating-linear-gradient(0deg,#5a371a 0 5px,#6e4523 5px 9px,#5d3a1c 9px 13px);background-size:150px 150px,150px 150px,auto,auto,auto,auto,auto;background-repeat:repeat,repeat,no-repeat,no-repeat,no-repeat,no-repeat,repeat}
+.ycard .yc-top{background-image:var(--tp-std),linear-gradient(color-mix(in srgb,var(--f) 34%,#2d3126),#1b2019);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard .yc-stats{background-image:var(--tp-std),linear-gradient(#262a22,#15181a);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard.tactic .yc-top{background-image:var(--tp-tactic),linear-gradient(#41336a,#241c3d);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard.tactic .yc-stats{background-image:var(--tp-tactic),linear-gradient(#2a2145,#171229);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard.ward .yc-top{background-image:var(--tp-ward),linear-gradient(#454a51,#23272c);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard.ward .yc-stats{background-image:var(--tp-ward),linear-gradient(#2d3136,#181b1f);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard.elite .yc-top{background-image:var(--tp-elite),linear-gradient(#34506f,#18222f);background-size:10px 10px,auto;background-repeat:repeat,no-repeat}
+.ycard.elite .yc-stats{background-image:var(--tp-elite),linear-gradient(#233246,#131a24);background-size:10px 10px,auto;background-repeat:repeat,no-repeat}
+.ycard.hero .yc-top{background-image:var(--tp-hero),linear-gradient(#5c4416,#2a1d08);background-size:9px 9px,auto;background-repeat:repeat,no-repeat}
+.ycard.hero .yc-stats{background-image:var(--tp-hero),linear-gradient(#3b2a0c,#1d1405);background-size:9px 9px,auto;background-repeat:repeat,no-repeat}
+.ycard.bld .yc-top{background-image:var(--tp-bld),repeating-linear-gradient(0deg,#6b4423 0 4px,#7a5230 4px 8px);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+.ycard.bld .yc-stats{background-image:var(--tp-bld),repeating-linear-gradient(0deg,#5a371a 0 4px,#6b4423 4px 8px);background-size:12px 12px,auto;background-repeat:repeat,no-repeat}
+
+/* ===== 費用寶晶與類型徽章：多面切割＋金屬邊，不用純色（各卡種配色、降低飽和） ===== */
+.ycard .yc-cost{background:radial-gradient(circle at 30% 24%,#ffffffd9 0 7%,transparent 24%),conic-gradient(from 25deg,#f1f8fb,#aecde0 14%,#5e87a3 26%,#aecde0 40%,#f1f8fb 52%,#5e87a3 66%,#aecde0 80%,#f1f8fb) !important;color:#17303f !important;border:1.5px solid #2c4a60;box-shadow:inset 0 0 0 1px #ffffff55,inset 0 -3px 5px #0000003d,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff66}
+.ycard.elite .yc-cost{background:radial-gradient(circle at 30% 24%,#ffffffd9 0 7%,transparent 24%),conic-gradient(from 25deg,#f6faff,#bcd3ea 14%,#6e8fb3 26%,#bcd3ea 40%,#f6faff 52%,#6e8fb3 66%,#bcd3ea 80%,#f6faff) !important;color:#14263a !important;border:1.5px solid #2a4363;box-shadow:inset 0 0 0 1px #ffffff55,inset 0 -3px 5px #0000003d,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff66}
+.ycard.hero .yc-cost{background:radial-gradient(circle at 30% 24%,#ffffffd9 0 7%,transparent 24%),conic-gradient(from 25deg,#fff6d6,#e8c46a 14%,#9a6d18 26%,#e8c46a 40%,#fff6d6 52%,#9a6d18 66%,#e8c46a 80%,#fff6d6) !important;color:#3a2504 !important;border:1.5px solid #5a3b0c;box-shadow:inset 0 0 0 1px #ffffff55,inset 0 -3px 5px #0000003d,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff66}
+.ycard.tactic .yc-cost{background:radial-gradient(circle at 30% 24%,#ffffffd9 0 7%,transparent 24%),conic-gradient(from 25deg,#f4efff,#bba8ec 14%,#6f58ad 26%,#bba8ec 40%,#f4efff 52%,#6f58ad 66%,#bba8ec 80%,#f4efff) !important;color:#23183f !important;border:1.5px solid #3d2e6b;box-shadow:inset 0 0 0 1px #ffffff55,inset 0 -3px 5px #0000003d,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff66}
+.ycard.ward .yc-cost{background:radial-gradient(circle at 30% 24%,#ffffffd9 0 7%,transparent 24%),conic-gradient(from 25deg,#f0f2f4,#b4bac1 14%,#626971 26%,#b4bac1 40%,#f0f2f4 52%,#626971 66%,#b4bac1 80%,#f0f2f4) !important;color:#1c2024 !important;border:1.5px solid #3a4046;box-shadow:inset 0 0 0 1px #ffffff55,inset 0 -3px 5px #0000003d,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff66}
+.ycard.bld .yc-cost{background:radial-gradient(circle at 30% 24%,#ffffffd9 0 7%,transparent 24%),conic-gradient(from 25deg,#f9ebcd,#d1a766 14%,#7f562a 26%,#d1a766 40%,#f9ebcd 52%,#7f562a 66%,#d1a766 80%,#f9ebcd) !important;color:#2d1a08 !important;border:1.5px solid #4a2f14;box-shadow:inset 0 0 0 1px #ffffff55,inset 0 -3px 5px #0000003d,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff66}
+.ycard .yc-class,.ycard .yc-kw{background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 34%,#2a2f29),#0a0e0a 74%);box-shadow:inset 0 0 0 1.5px #000b,inset 0 0 0 2.5px color-mix(in srgb,var(--tc) 38%,transparent),0 1px 3px #000a}
+.ycard .yc-eff{letter-spacing:.18em;text-shadow:0 1px 1px #000,0 0 6px color-mix(in srgb,var(--tc) 40%,transparent)}
+
+/* 勢力徽記：放在內框上邊的正中間（名牌列與插畫交界），半圓壓在框線上；卡片窄（對戰手牌）時隱藏，勢力改看旗印條 */
+.ycard .yc-top{position:relative;z-index:3}
+.ycard .yc-top .yc-crest.on-edge{position:absolute;left:50%;bottom:-6.5cqw;transform:translateX(-50%);width:13cqw;height:13cqw;border-radius:50%;
+ background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 30%,#2a2f29),#0a0e0a 76%);
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--tc) 70%,#1a1a12),0 0 0 2.5px #000b,inset 0 0 0 1px #0009,0 2px 4px #000b;display:flex;align-items:center;justify-content:center;z-index:4}
+.ycard .yc-top .yc-crest.on-edge svg,.ycard .yc-top .yc-crest.on-edge .faction-crest,.ycard .yc-top .yc-crest.on-edge img{position:static!important;width:9.5cqw!important;height:9.5cqw!important}
+@container (max-width:125px){.ycard .yc-top .yc-crest.on-edge{display:none}}
+
+/* 兵種類型徽章：放在內框下邊正中間（插畫與數值列交界），與上邊的勢力徽記上下對稱；衝鋒小徽章不再顯示 */
+.ycard .yc-stats{position:relative;z-index:3}
+.ycard .yc-stats .yc-class.on-edge{position:absolute;left:50%;top:-7cqw;transform:translateX(-50%);width:15cqw;height:15cqw;border-radius:50%;z-index:4;
+ background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 34%,#2a2f29),#0a0e0a 74%);
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--tc) 70%,#1a1a12),0 0 0 2.5px #000b,inset 0 0 0 1px #0009,0 2px 4px #000b;display:flex;align-items:center;justify-content:center;border:0}
+.ycard .yc-stats .yc-class.on-edge .yc-glyph,.ycard .yc-stats .yc-class.on-edge .yc-role,.ycard .yc-stats .yc-class.on-edge svg{width:10.5cqw!important;height:10.5cqw!important}
+.ycard .yc-kw{display:none!important}
+
+/* 丸子排法：勢力徽記（上）與兵種徽章（下）都在內框下邊正中間，上下相貼串成一串；窄卡隱藏勢力徽記 */
+.ycard .yc-stats .yc-crest.on-chain{position:absolute;left:50%;top:-18.5cqw;transform:translateX(-50%);width:12.5cqw;height:12.5cqw;border-radius:50%;z-index:4;
+ background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 30%,#2a2f29),#0a0e0a 76%);
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--tc) 70%,#1a1a12),0 0 0 2.5px #000b,inset 0 0 0 1px #0009,0 2px 4px #000b;display:flex;align-items:center;justify-content:center}
+.ycard .yc-stats .yc-crest.on-chain svg,.ycard .yc-stats .yc-crest.on-chain .faction-crest,.ycard .yc-stats .yc-crest.on-chain img{position:static!important;width:9cqw!important;height:9cqw!important}
+.ycard .yc-stats .yc-class.on-edge{top:-7cqw;width:14cqw;height:14cqw}
+@container (max-width:125px){.ycard .yc-stats .yc-crest.on-chain{display:none}}
+
+/* ===== 排法 v4：名牌列＝「勢力壓印＋名字」置中的單一單元；費用球在內框左上；職能徽章在內框右下 ===== */
+.ycard .yc-top{justify-content:center}
+.ycard .yc-top .yc-nm{display:flex;align-items:center;justify-content:center;gap:2cqw;min-width:0;max-width:calc(100% - 4cqw)}
+.ycard .yc-top .yc-nm strong{flex:0 1 auto;min-width:0}
+.ycard .yc-flat{display:flex;align-items:center;justify-content:center;flex:none;width:9cqw;height:9cqw;filter:grayscale(.55) sepia(.5) brightness(1.15) contrast(.9) drop-shadow(0 1px 0 #000c);opacity:.95}
+.ycard .yc-flat svg,.ycard .yc-flat img,.ycard .yc-flat .faction-crest{width:100%!important;height:100%!important;position:static!important}
+.ycard.hero .yc-flat{filter:sepia(.9) saturate(1.4) brightness(1.25) drop-shadow(0 1px 0 #000c)}
+.ycard.elite .yc-flat{filter:grayscale(.2) brightness(1.3) hue-rotate(185deg) saturate(.7) drop-shadow(0 1px 0 #000c)}
+.ycard.ward .yc-flat{filter:grayscale(.9) brightness(1.3) drop-shadow(0 1px 0 #000c)}
+@container (max-width:125px){.ycard .yc-top .yc-flat{display:none}}
+.ycard .yc-top .yc-cost{position:absolute;left:2cqw;bottom:-9cqw;z-index:5}
+.ycard .yc-stats .yc-class.on-edge{left:auto;right:2.5cqw;top:-11.5cqw;transform:none;width:15cqw;height:15cqw}
+
+/* v4.1：費用球、職能徽章精確對齊插畫的左上角／右下角（距邊各 2cqw）；快捷鍵數字移到右上 */
+.ycard .yc-art .yc-cost{position:absolute;left:2cqw;top:2cqw;bottom:auto;z-index:4}
+.ycard .yc-art .yc-class.corner{position:absolute;right:2cqw;bottom:2cqw;left:auto;top:auto;transform:none;width:16cqw;height:16cqw;z-index:4;border-radius:50%;
+ background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 34%,#2a2f29),#0a0e0a 74%);
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--tc) 70%,#1a1a12),0 0 0 2.5px #000b,inset 0 0 0 1px #0009,0 2px 4px #000b;display:flex;align-items:center;justify-content:center;border:0}
+.ycard .yc-art .yc-class.corner .yc-glyph,.ycard .yc-art .yc-class.corner .yc-role,.ycard .yc-art .yc-class.corner svg{width:11cqw!important;height:11cqw!important}
+
+/* ===== 排法 v5（使用者提案）：名稱列＝左勢力壓印｜中名稱｜右費用球；數值列＝左職能徽章｜右 攻擊（紅）／生命（綠） ===== */
+.ycard .yc-top{display:grid;grid-template-columns:11cqw 1fr auto;align-items:center;gap:2cqw;justify-content:stretch}
+.ycard .yc-top strong{text-align:center;min-width:0}
+.ycard .yc-top .yc-cost{position:static;transform:none;margin:0}
+.ycard .yc-top .yc-flat{width:9cqw;height:9cqw}
+.ycard .yc-top .yc-flat svg,.ycard .yc-top .yc-flat img,.ycard .yc-top .yc-flat .faction-crest{width:100%!important;height:100%!important;position:static!important}
+@container (max-width:125px){.ycard .yc-top .yc-flat{visibility:hidden}}
+.ycard .yc-stats{display:flex;align-items:center;justify-content:space-between;gap:3cqw}
+.ycard .yc-stats .yc-class.bar{position:static;flex:none;width:13cqw;height:13cqw;transform:none;border-radius:50%;margin:0;
+ background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 34%,#2a2f29),#0a0e0a 74%);
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--tc) 70%,#1a1a12),inset 0 0 0 1px #0009,0 1px 3px #000a;display:flex;align-items:center;justify-content:center;border:0}
+.ycard .yc-stats .yc-class.bar .yc-glyph,.ycard .yc-stats .yc-class.bar .yc-role,.ycard .yc-stats .yc-class.bar svg{width:9cqw!important;height:9cqw!important}
+.ycard .yc-stats .yc-nums{display:flex;align-items:baseline;gap:1.5cqw;margin-left:auto}
+.ycard .yc-stats .yc-sep{color:#b9bfa9;font-style:normal;font-size:.8em;opacity:.8}
+.ycard .yc-stats .st-atk{color:#ff6f5e!important;text-shadow:0 1px 0 #000,0 0 6px #ff3b2a55}
+.ycard .yc-stats .st-hp{color:#8fe28a!important;text-shadow:0 1px 0 #000,0 0 6px #35d04a55}
+.ycard .yc-stats .st-dur{color:#8fd0f0!important}
+.ycard .yc-stats .yc-eff{margin:0 auto}
+.ycard .yc-stats .yc-sp{width:13cqw;flex:none}
+
+/* ===== v5.1：勢力徽章也做成球（與職能徽章同款深色寶珠）；費用球改中性珍珠象牙色，所有卡種一致 ===== */
+.ycard .yc-top{grid-template-columns:14cqw 1fr auto}
+.ycard .yc-top .yc-flat{width:13cqw;height:13cqw;border-radius:50%;filter:none;opacity:1;
+ background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--tc) 34%,#2a2f29),#0a0e0a 74%);
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--tc) 70%,#1a1a12),inset 0 0 0 1px #0009,0 1px 3px #000a}
+.ycard .yc-top .yc-flat svg,.ycard .yc-top .yc-flat img,.ycard .yc-top .yc-flat .faction-crest{width:68%!important;height:68%!important}
+.ycard.hero .yc-top .yc-flat,.ycard.elite .yc-top .yc-flat,.ycard.ward .yc-top .yc-flat{filter:none}
+.ycard .yc-cost,.ycard.elite .yc-cost,.ycard.hero .yc-cost,.ycard.tactic .yc-cost,.ycard.ward .yc-cost,.ycard.bld .yc-cost{
+ background:radial-gradient(circle at 30% 24%,#ffffffd0 0 7%,transparent 24%),conic-gradient(from 25deg,#f7f3e8,#d8d1bc 14%,#9d9680 26%,#d8d1bc 40%,#f7f3e8 52%,#9d9680 66%,#d8d1bc 80%,#f7f3e8) !important;
+ color:#2a2518 !important;border:1.5px solid #4a4230;
+ box-shadow:inset 0 0 0 1px #ffffff66,inset 0 -3px 5px #0000003a,0 1px 3px #000a,0 0 0 1px #0008 !important;text-shadow:0 1px 0 #ffffff77}
+
+/* ===== v5.2：職能徽章不要球，變成壓印徽記；與「攻擊／生命」合成一個單元，整體在數值列置中 ===== */
+.ycard .yc-stats{justify-content:center;gap:3cqw}
+.ycard .yc-stats .yc-class.bar{width:auto;height:auto;background:none!important;box-shadow:none!important;border:0;border-radius:0;filter:drop-shadow(0 1px 0 #000c) drop-shadow(0 0 4px color-mix(in srgb,var(--tc) 35%,transparent))}
+.ycard .yc-stats .yc-class.bar .yc-glyph,.ycard .yc-stats .yc-class.bar .yc-role,.ycard .yc-stats .yc-class.bar svg{width:11cqw!important;height:11cqw!important}
+.ycard .yc-stats .yc-nums{margin-left:0}
+.ycard .yc-stats .yc-sp{display:none}
+.ycard .yc-stats .yc-eff{margin:0}
+
+/* ===== 護印英魂：石墨鐵灰框（不用戰術紫）。必須壓過 .ycard.tactic，故用 .ycard.tactic.ward ===== */
+.ycard.tactic.ward{--tc:#aab2ba;border-color:#8a9199;box-shadow:inset 0 0 0 1px #0009,inset 0 0 0 3px #4b5158,0 3px 10px #0009}
+.ycard.tactic.ward .yc-top{border-color:#aab2ba;background-color:#2f3338}
+.ycard.tactic.ward .yc-top strong{color:#eef1f4}
+.ycard.tactic.ward .yc-art{border-color:#aab2ba}
+.ycard.tactic.ward .yc-stats{border-color:#6f767e;background-color:#23272b}
+.ycard.tactic.ward .yc-eff{color:#e4e9ee;letter-spacing:.2em}
+
+/* ===== 窄卡（對戰手牌 ≤125px）：名稱列改簡單橫排，不用三欄格線；勢力球隱藏 ===== */
+@container (max-width:125px){
+ html body .ycard .yc-top{display:flex;align-items:center;gap:1.5cqw;padding:1.5cqw 2cqw}
+ html body .ycard .yc-top .yc-flat{display:none}
+ html body .ycard .yc-top strong{flex:1 1 auto;min-width:0;text-align:left;letter-spacing:-.04em}
+ html body .ycard .yc-top .yc-cost{flex:none;position:static;margin:0}
+}

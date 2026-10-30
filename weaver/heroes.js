@@ -44,7 +44,7 @@ window.SKILL_DOT=SKILL_DOT;
    el.style.setProperty('--p',Math.round(h.progress*100)+'%');
    el.classList.toggle('ready',h.ready);el.classList.toggle('field',h.onField);el.classList.toggle('picked',heroPick===h.idx);el.classList.toggle('skill-ready',h.skillReady);
    lab.textContent=h.onField?(h.skillReady?h.skill:'冷卻 '+fmt(h.skillWait)):h.wait>0?'重整 '+fmt(h.wait):h.ready?'登場 ◆'+h.cost:Math.min(h.count,h.need)+' / '+h.need;
-   el.title=h.onField?h.skill+'：'+h.skillDesc+(HERO_HS[h.id]?'\n計數「'+HERO_HS[h.id].name+'」每 '+HERO_HS[h.id].need+' 次：'+HERO_HS[h.id].desc:''):'條件：'+h.cond+' '+h.count+'/'+h.need+'；登場需 ◆'+h.cost;
+   el.title=h.onField?h.skill+'（花 '+SixEngine.HERO_ACTIVE_COST+' 點）：'+h.skillDesc+(HERO_HS[h.id]?'\n計數「'+HERO_HS[h.id].name+'」每 '+HERO_HS[h.id].need+' 次（花 '+SixEngine.HERO_COUNTER_COST+' 點）：'+HERO_HS[h.id].desc:''):'條件：'+h.cond+' '+h.count+'/'+h.need+'；登場需 ◆'+h.cost;
   });
   if(heroPick>=0&&(!st[heroPick]||!st[heroPick].ready)){heroPick=-1;}
   document.body.classList.toggle('hero-pick',heroPick>=0);

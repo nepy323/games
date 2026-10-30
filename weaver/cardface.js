@@ -37,24 +37,26 @@ const CLASS_BY_CATEGORY={'前排':'shield','防護':'shield','反騎兵':'spear'
 const EFFECT_GLYPH={bomb:'burst',barrage:'burst',fire:'flame',bolt:'aim',heal:'cross',shield:'shield',armor:'shield',haste:'up',speed:'up',rush:'up',power:'up',frenzy:'flame',sacrifice:'drop',curse:'chain',slow:'chain',root:'chain',summon:'portal',portal:'portal',mine:'trap',resonate:'chain'};
 const glyphSVG=(key,cls='')=>`<svg class="yc-glyph ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CLASS_GLYPH[key]||CLASS_GLYPH.shield}</svg>`;
 /* 兵種職能圖示：GPT 生成的白色剪影（assets/roles/*.png），用 mask 上色，顏色跟著卡框；沒有對應圖示的職能退回上面的幾何形狀 */
-const ROLE_BY_CATEGORY={'前排':'shield','防護':'shield','反重甲':'antiarmor','巨獸':'colossus','反騎兵':'spear','射手':'bow','投石兵':'sling','騎兵':'rider','突擊':'blade','獵獸':'claw','飛行突擊':'wing','支援':'support','治療':'support','軍團增益':'banner','軍團核心':'banner','集群':'swarm','法師':'mage','控制法師':'control','控制':'control','控制巨獸':'colossus','召喚師':'summoner','召喚':'summoner','詛咒':'curse','砲兵':'cannon','攻城砲兵':'cannon','轟擊':'cannon','攻城':'ram','攻城機械':'ram','攻城巨獸':'colossus','噴火兵':'flame','區域傷害':'burst','單體傷害':'aim','防禦建築':'tower','產兵建築':'tower','圖騰':'tower','陷阱':'trap','傳送門':'portal'};
+const ROLE_BY_CATEGORY={'前排':'shield','防護':'shield','反重甲':'antiarmor','巨獸':'colossus','反騎兵':'spear','射手':'bow','投石兵':'sling','騎兵':'rider','突擊':'blade','獵獸':'claw','飛行突擊':'wing','支援':'support','治療':'support','軍團增益':'banner','軍團核心':'banner','集群':'swarm','法師':'mage','控制法師':'control','控制':'control','控制巨獸':'colossus','召喚師':'summoner','召喚':'summoner','詛咒':'curse','砲兵':'cannon','攻城砲兵':'cannon','轟擊':'cannon','攻城':'ram','攻城機械':'ram','攻城巨獸':'colossus','噴火兵':'flame','區域傷害':'burst','單體傷害':'aim','防禦建築':'tower','產兵建築':'tower','圖騰':'tower','陷阱':'trap','傳送門':'portal','遠程指揮':'banner','吸血輔助':'support','治療輔助':'support','攻城砲手':'cannon','護印英魂':'shield'};
 const ROLE_BY_EFFECT={bomb:'burst',barrage:'cannon',fire:'flame',bolt:'aim',heal:'support',shield:'shield',armor:'shield',haste:'haste',speed:'haste',rush:'haste',power:'haste',frenzy:'flame',sacrifice:'sacrifice',curse:'curse',slow:'curse',root:'curse',summon:'summoner',portal:'portal',mine:'trap',resonate:'summoner'};
-const roleKey=c=>c.type==='tactic'?ROLE_BY_EFFECT[c.effect]:c.type==='building'||c.totem?'tower':ROLE_BY_CATEGORY[c.category];
+const roleKey=c=>c.type==='tactic'?(c.kindLabel==='護印英魂'?'shield':ROLE_BY_EFFECT[c.effect]):c.type==='building'||c.totem?'tower':ROLE_BY_CATEGORY[c.category];
 const roleIcon=(k,cls='')=>`<span class="yc-glyph yc-role ${cls}" style="--m:url(assets/roles/${k}.png)" aria-hidden="true"></span>`;
 const badgeGlyph=c=>{const k=roleKey(c);return k?roleIcon(k):glyphSVG(classGlyphKey(c));};
 /* 戰術分三類：援軍（叫出會打的生物）、法術（直接對範圍造成傷害）、狀態（改變附近強弱：增益、減益、治療、控制）；逆反共振維持「禁忌召喚」 */
-const tacticKind=c=>c.effect==='resonate'?'禁忌召喚':['summon','portal'].includes(c.effect)?'援軍':['bomb','barrage','fire','bolt'].includes(c.effect)?'法術':'狀態';
+const tacticKind=c=>c.kindLabel?c.kindLabel:c.effect==='resonate'?'禁忌召喚':['summon','portal'].includes(c.effect)?'援軍':['bomb','barrage','fire','bolt'].includes(c.effect)?'法術':'狀態';
 const classGlyphKey=c=>c.type==='tactic'?(EFFECT_GLYPH[c.effect]||'burst'):c.type==='building'||c.totem?'tower':(SHAPE_BY_CATEGORY[c.category]||'sq');
 
 /* 直式卡面：名稱條＋費用、插圖（右下兵種圖示、左下旗徽）、數值條。框色：普通=古銅、菁英=銀藍、英雄=金、戰術=紫。手牌、爬塔獎勵共用。 */
 function cardFace(c,o={}){
- const f=factions[c.faction],tier=c.type==='tactic'?'tactic':c.tier==='hero'?'hero':c.tier==='elite'?'elite':'';
- const stats=c.type==='tactic'?`<span class="yc-eff">${tacticKind(c)}</span>`
-  :c.totem?`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-dur" title="持續時間">${c.duration}<i>秒</i></span>`
-  :`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span>`;
+ const f=factions[c.faction],tier=c.type==='tactic'?(c.kindLabel==='護印英魂'?'tactic ward':'tactic'):c.tier==='hero'?'hero':c.tier==='elite'?'elite':'';
+ const nm=c.tier==='hero'?c.name.split('・')[0]:c.name;
+ const cls=`<span class="yc-class bar" title="${c.category||effects[c.effect]||''}">${badgeGlyph(c)}</span>`;
+ const stats=c.type==='tactic'?cls+`<span class="yc-eff">${tacticKind(c)}</span><span class="yc-sp"></span>`
+  :c.totem?cls+`<span class="yc-nums"><span class="st-atk" title="攻擊">${c.dmg||0}</span><i class="yc-sep">/</i><span class="st-dur" title="持續時間">${c.duration}<i>秒</i></span></span>`
+  :cls+`<span class="yc-nums"><span class="st-atk" title="攻擊">${c.dmg||0}</span><i class="yc-sep">/</i><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span></span>`;
  const art=String(icon(c)).replace('<svg class="unit-art"','<svg preserveAspectRatio="xMidYMid slice" class="unit-art"');
- const kw=[c.charge?['衝鋒','rider']:null].filter(Boolean).map(([t,k])=>`<span class="yc-kw" title="${t}">${k==='rider'?roleIcon('rider'):glyphSVG(k)}</span>`).join('');
- return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''}" style="--f:${f[2]}"><div class="yc-top"><strong>${c.tier==='hero'?c.name.split('・')[0]:c.name}</strong><span class="yc-cost">${c.cost}</span></div><div class="yc-art">${art}<span class="yc-crest">${SixPresentation.crest(c.faction)}</span>${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}<span class="yc-badges">${kw}<span class="yc-class" title="${c.category||effects[c.effect]||''}">${badgeGlyph(c)}</span></span></div><div class="yc-stats">${stats}</div></div>`;
+ const cost=`<span class="yc-cost"${c.costLabel?' style="font-size:11px;letter-spacing:-1px;white-space:nowrap"':''}>${c.costLabel||c.cost}</span>`;
+ return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''}" style="--f:${f[2]}"><div class="yc-top"><span class="yc-flat">${SixPresentation.crest(c.faction)}</span><strong${nm.length>6?' style="font-size:.78em;letter-spacing:-.5px"':''}>${nm}</strong>${cost}</div><div class="yc-art">${art}${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}</div><div class="yc-stats">${stats}</div></div>`;
 }
 
 /* 長按手牌（或右鍵）開啟完整卡牌；不影響一般點選 */

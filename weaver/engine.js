@@ -11,13 +11,24 @@ const OMEN_TRAITS={n_rock:u=>{u.armor=(u.armor||0)+.15;},n_dew:u=>{u.regen=(u.re
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈融煉：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.8,MOVE_SCALE=.7,PURE_NEED=8,PURE_BONUS=.12,PURE_BONUS_SPIRIT=.05,PURE_CD=.8,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就融煉，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆反共振）基準 ×0.8、本身減傷 20%，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 63%，更高就是 imba） */
+const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.8,MOVE_SCALE=.6,PURE_NEED=8,PURE_BONUS=.12,PURE_BONUS_SPIRIT=.05,PURE_CD=.8,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就融煉，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆反共振）基準 ×0.8、本身減傷 20%，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 63%，更高就是 imba） */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
  {a:'n_rot',b:'n_dark',into:'fuse_fallen',burst:{dmg:200,r:120,slow:2},dark:true}];
 /* 英雄格：英雄不在牌組內，累積條件達成後花資源（原費用 +1）登場；登場後有主動技（冷卻）。 */
-const DARK_FUSIONS=4,HERO_SUMMON_EXTRA=1,HERO_RESPAWN=40;
+const DARK_FUSIONS=4,HERO_COUNTER_COST=1,HERO_ACTIVE_COST=2; /* 英雄放技能要花水晶：計數技能自動扣 1（可預扣至 -2），主動技要有 2 點才放得出來 */
+/* 守城人：己方外塔第一次降到半血，塔旁自動出現一隻菁英級守城單位（限時、免費）；種類看牌組裡最多的勢力 */
+const GUARD_TTL=18,GUARD_LEASH=165; /* 護印英魂只在塔前這個範圍活動，不過河 */
+const GUARDIANS={
+ 0:{id:'guard_0',name:'軍鼓司令',hp:1300,dmg:70,speed:30,range:110,rate:1.2,attackKind:'magic',role:'鼓',element:'戰令',aura:true},
+ 1:{id:'guard_1',name:'血鏈修士',hp:1300,dmg:90,speed:32,range:110,rate:1.1,attackKind:'magic',role:'鎖',element:'血誓',bounce:2,bounceFall:.7,lifesteal:.2},
+ 2:{id:'guard_2',name:'墓鐘侍僧',hp:1400,dmg:70,speed:28,range:120,rate:1.2,attackKind:'magic',role:'鐘',element:'靈魂',chime:90,airHit:true},
+ 3:{id:'guard_3',name:'鉚釘機匠',hp:1300,dmg:130,speed:28,range:150,rate:1.2,attackKind:'bullet',role:'鉚',element:'符文',trueDmg:true},
+ 4:{id:'guard_4',name:'蕈孢靈師',hp:1500,dmg:55,speed:30,range:110,rate:1.1,attackKind:'magic',role:'菇',element:'自然',bounce:2,bounceFall:.8,bounceHeal:50,slowHit:true},
+ 5:{id:'guard_5',name:'套索獵手',hp:1400,dmg:110,speed:32,range:130,rate:1,attackKind:'arrow',role:'索',element:'物理',multi:2,slowHit:true,airHit:true}
+};
+const HERO_SUMMON_EXTRA=1,HERO_RESPAWN=40;
 const HEROES={
  f0_4:{metric:'troopCards',need:8,cond:'累計部署兵種',skill:'號令',cd:30,desc:'全場友軍獲得 250 點護盾（8 秒）',hs:{name:'聖堂衝擊波',need:5,desc:'周圍敵軍受 120 傷害，附近友軍獲得 120 護盾'}},
  f0_30:{metric:'tacticSpent',need:8,cond:'累計花費於戰術',skill:'齊射令',cd:30,desc:'全場遠程友軍攻速 +60%（6 秒）',hs:{name:'齊射',need:6,desc:'前方一條直線上所有敵人受 100 傷害'}},
@@ -52,14 +63,18 @@ const ITEMS=[
  {id:'foresight',name:'預知儲蓄',art:13,desc:'鎖住目前所有資源，5 秒後全額還回（上限暫時提高到 14）'}
 ];
 /* 計數技能：精英以上單位的命中次數累積，滿了自動施放，花 1 點資源（可預扣，最低 -2） */
-const SKILL_COST=1,ENERGY_FLOOR=-2;
+const SKILL_COST=0,ENERGY_FLOOR=-2; /* 菁英計數技能免費；只有環行（cost:3）要花資源 */
 const SKILLS={
  banner:{name:'號令護盾',need:5,desc:'附近友軍獲得 120 護盾'},
  leech:{name:'奪魂',need:4,desc:'恢復 180 生命'},
  runes:{name:'符文庇佑',need:5,desc:'為附近生命比例最低的友軍提供 160 護盾'},
  rally:{name:'戰鼓',need:6,desc:'附近友軍攻速提高，持續 4 秒'},
  trample:{name:'震地',need:3,desc:'周圍敵軍受到 100 傷害並減速'},
- ringwalk:{name:'環行',need:5,cost:3,desc:'丟出一隻隨機合靈（12 秒），花 3 點資源'}
+ ringwalk:{name:'環行',need:5,cost:3,desc:'丟出一隻隨機合靈（12 秒），花 3 點資源'},
+ mend:{name:'縫魂',need:4,desc:'附近友軍回復 12% 生命'},
+ shackle:{name:'縛魂',need:4,desc:'周圍敵軍定身 1.5 秒'},
+ drill:{name:'鑽破',need:3,desc:'目標追加 220 點無視減傷傷害，並使其 3 秒內受傷 +25%'},
+ moth:{name:'蛾粉',need:4,desc:'目標周圍敵軍減速並降低傷害'}
 };
 const BANNER_NEED=[2,4,6];
 const BANNERS=[
@@ -205,6 +220,7 @@ class Battle{
   if(this.state!=='playing')return '對局未進行';
   const sl=this.heroSlots[team][idx],st=sl&&this.heroStatus(team)[idx];if(!st||!st.onField)return '英雄不在場上';
   if(!st.skillReady)return '技能冷卻中';
+  {const p=this.players[team];if(p.energy+1e-6<HERO_ACTIVE_COST)return '資源不足，技能需 '+HERO_ACTIVE_COST+' 點';}
   const hero=this.units.find(u=>u.team===team&&u.artId===sl.id&&u.hp>0&&!u.derived);
   const friends=this.units.filter(u=>u.team===team&&u.hp>0&&u.type!=='building'),foes=this.units.filter(u=>u.team!==team&&u.hp>0&&u.type!=='building');
   const id=sl.id;
@@ -230,6 +246,7 @@ class Battle{
    this.effect('cast',lane,350,team,120,{label:'盤根'});
   }
   this.effect('cast',hero.x,hero.y,team,70,{label:HEROES[id].skill});
+  {const p=this.players[team];p.energy-=HERO_ACTIVE_COST;this.notice.push({team,kind:'skillcost',paid:HERO_ACTIVE_COST,name:HEROES[id].skill,unit:id});}
   sl.skillAt=this.clock+HEROES[id].cd*(this.pureF&&this.pureF[team]>=0&&CARDS[id].faction===this.pureF[team]?PURE_CD:1);this.log((team?'敵方':'我方')+CARDS[id].name+'發動「'+HEROES[id].skill+'」');return '';
  }
  /* 環行者：持有的資源每 1 點，己方全軍傷害 +1%（上限 +10%） */
@@ -434,17 +451,39 @@ class Battle{
  shieldUnit(u,amount){u.shield=Math.max(u.shieldUntil>this.clock?u.shield:0,amount);u.shieldUntil=this.clock+4;}
  abilityEffect(a){this.effect('cast',a.x,a.y,a.team,45,{label:a.abilityName});}
  /* 技能施放：先扣 1 點資源（不夠也照扣，最低 -2），再產生效果 */
- fireSkill(a,sk){
+ fireSkill(a,sk,b){
   const p=this.players[a.team],before=p.energy;p.energy=Math.max(ENERGY_FLOOR,p.energy-(sk.cost||SKILL_COST));
-  this.notice.push({team:a.team,kind:'skillcost',paid:before-p.energy,name:sk.name,unit:a.id});
+  if(before-p.energy>0)this.notice.push({team:a.team,kind:'skillcost',paid:before-p.energy,name:sk.name,unit:a.id});
   const near=this.units.filter(u=>u.team===a.team&&u.hp>0&&u.type!=='building'&&dist(a,u)<105);
   if(a.ability==='banner')near.forEach(u=>this.shieldUnit(u,120));
   else if(a.ability==='leech')this.restore(a,180);
   else if(a.ability==='runes'){const t=near.sort((u,v)=>u.hp/u.max-v.hp/v.max)[0];if(t)this.shieldUnit(t,160);}
   else if(a.ability==='rally')near.forEach(u=>this.buff(u,'aura',4));
   else if(a.ability==='ringwalk'){const pool=(a.artId==='n_hero'||a.dark)?['fuse_earth','fuse_storm','fuse_aurora','fuse_fallen']:['fuse_earth','fuse_storm','fuse_aurora'],pick=pool[Math.floor(this.random()*pool.length)];this.spawn(summons[pick],a.team,a.x+(a.team?0:0),a.y+(a.team?35:-35),1,{derived:true});const u=this.units.at(-1);if(u){u.ttl=12;this.effect('cast',u.x,u.y,a.team,50,{label:summons[pick].name,big:true});}}
+  else if(a.ability==='mend')near.forEach(u=>this.restore(u,u.max*.12));
+  else if(a.ability==='shackle')this.units.filter(u=>u.team!==a.team&&u.hp>0&&!u.tower&&u.type!=='building'&&dist(a,u)<110+u.r).forEach(u=>this.buff(u,'root',1.5));
+  else if(a.ability==='drill'&&b&&b.hp>0){this._true=true;this.hit(a,b,220);this._true=false;this.buff(b,'rush',3);}
+  else if(a.ability==='moth'&&b)this.units.filter(u=>u.team!==a.team&&u.hp>0&&!u.tower&&u.type!=='building'&&dist(b,u)<100+u.r).forEach(u=>{this.buff(u,'slow',2.5);this.buff(u,'weak',3);});
   else if(a.ability==='trample')this.units.filter(u=>u.team!==a.team&&u.hp>0&&!u.tower&&u.type!=='building'&&dist(a,u)<110+u.r).forEach(u=>{this.hit(a,u,100);this.buff(u,'slow',2.5);});
   this.effect('cast',a.x,a.y,a.team,60,{label:sk.name,big:true});
+ }
+ /* 守城人：外塔第一次降到 50% 以下時，在塔前方跳出一隻守城單位 */
+ guardFaction(team){
+  const cnt={};for(const id of this.players[team].deck){const c=CARDS[id];if(c&&c.faction>=0&&c.faction<=6)cnt[c.faction]=(cnt[c.faction]||0)+1;}
+  const top=Math.max(0,...Object.values(cnt)),fs=Object.keys(cnt).filter(f=>cnt[f]===top);return +fs[Math.floor(this.random()*fs.length)];
+ }
+ guardStep(){
+  for(const u of this.units)if(u.guardian&&u.hp>0&&u.guardTowerRef&&u.guardTowerRef.hp<=0){u.hp=0;u.ttl=0;this.effect('spawn',u.x,u.y,u.team,46);} /* 塔倒了，護印英魂跟著消失 */
+  for(const t of this.towers){
+   if(t.core||t.guarded||t.hp<=0||t.hp>t.max*.5)continue;
+   t.guarded=true;const team=t.team,dir=team?1:-1,f=this.guardFaction(team),x=t.x,y=t.y+dir*50;
+   let u;
+   if(f===6){const k=['fuse_earth','fuse_storm','fuse_aurora'][Math.floor(this.random()*3)];this.spawn(summons[k],team,x,y,1,{derived:true});u=this.units.at(-1);if(u){u.ring=true;u.name='逆'+summons[k].kin+'靈';}}
+   else{const g=GUARDIANS[f];this.spawn({...g,artId:g.id,type:'troop',faction:f,tier:'elite',n:1,cost:0},team,x,y,1,{derived:true});u=this.units.at(-1);if(u){u.size=1.2;u.r=15;u.cool=.7;}}
+   if(u){u.ttl=GUARD_TTL;u.guardian=true;u.guardFaction=f;u.guardAt=this.clock;u.guardTower={x:t.x,y:t.y};u.guardTowerRef=t;u.cool=Math.max(u.cool,.7);}
+   this.effect('guardfall',x,y,team,80,{f,life:1.4,max:1.4});this.effect('cast',x,y,team,80,{label:'護印降臨',big:true,element:'聖'});
+   this.log((team?'敵方':'我方')+t.name+'半血，護印降臨');
+  }
  }
  /* 英雄命中附加：吸血、彈跳、範圍橫掃、鐘聲詛咒、衝鋒落點範圍 */
  heroHit(a,b,p){
@@ -490,6 +529,7 @@ class Battle{
   else if(id==='f4_30'){nearF(140).forEach(u=>this.restore(u,u.max*.08));nearE(140).forEach(u=>{if(!u.tower&&u.type!=='building')this.buff(u,'slow',3);});this.effect('blast',a.x,a.y,t,140,{big:true,element:'毒'});}
   else if(id==='f5_30'){nearF(150).forEach(u=>this.buff(u,'speed',4));this.buff(a,'speed',4);nearE(110).forEach(u=>this.hit(a,u,90));this.effect('blast',a.x,a.y,t,110,{big:true,element:'物理'});}
   else if(id==='f5_5'){nearF(130).forEach(u=>this.buff(u,'haste',4));this.effect('cast',a.x,a.y,t,100,{big:true,element:'自然'});}
+  {const p=this.players[t],before=p.energy;p.energy=Math.max(ENERGY_FLOOR,p.energy-HERO_COUNTER_COST);if(before-p.energy>0)this.notice.push({team:t,kind:'skillcost',paid:before-p.energy,name:hs.name,unit:a.id});}
   this.effect('cast',a.x,a.y,t,64,{label:hs.name,big:true});
   this.notice.push({team:t,kind:'herocount',name:hs.name,unit:a.id});
  }
@@ -497,7 +537,7 @@ class Battle{
   if(a.hp<=0)return;
   if(p.charged&&a.ability==='dive'&&!b.tower&&b.type!=='building')this.buff(b,'slow',2);
   const HC=HEROES[a.artId];if(HC&&HC.hs&&!a.derived&&!a.summoned){a.hcount=(a.hcount||0)+1;if(a.hcount>=HC.hs.need){a.hcount=0;this.heroCounter(a,HC.hs);}}
-  const sk=SKILLS[a.ability];if(sk&&!a.derived){a.skillHits=(a.skillHits||0)+1;if(a.skillHits>=sk.need){a.skillHits=0;this.fireSkill(a,sk);}}
+  const sk=SKILLS[a.ability];if(sk&&!a.derived){a.skillHits=(a.skillHits||0)+1;if(a.skillHits>=sk.need){a.skillHits=0;this.fireSkill(a,sk,b);}}
   if(a.ability==='roots'){a.rootHits=(a.rootHits||0)+1;if(a.rootHits%3===0&&!b.tower&&b.type!=='building'){this.buff(b,'root',1.2);this.abilityEffect(a);}}
  }
  support(a,dt){
@@ -612,7 +652,7 @@ class Battle{
  step(dt){
   if(this.state!=='playing')return;dt=Math.min(dt,.1);this.clock+=dt;this.remaining=Math.max(0,this.remaining-dt);
   this.players.forEach((p,i)=>{
-   const gain=dt*(this.remaining<=60||this.overtime?1.25:.625)*((this.teamMods&&this.teamMods[i].regen)||1)*(1+((this.bannerMods&&this.bannerMods[i].regen)||0))*((p.regenUntil||0)>this.clock?p.regenMul:1)*this.catchUp(i);
+   const gain=dt*(this.remaining<=60||this.overtime?.625:.5)*((this.teamMods&&this.teamMods[i].regen)||1)*(1+((this.bannerMods&&this.bannerMods[i].regen)||0))*((p.regenUntil||0)>this.clock?p.regenMul:1)*this.catchUp(i);
    if(p.energy<10)p.energy=Math.min(10,p.energy+gain);
    if(p.bank&&this.clock>=p.bank.until){p.energy+=p.bank.amount;p.bank=null;}
   });
@@ -620,7 +660,7 @@ class Battle{
   if(this.itemsOn)this.players.forEach((_,t)=>{if(this.clock>=this.nextItemT[t]){this.grantItem(t);this.nextItemT[t]+=this.behindBy(t)>=ITEM_BEHIND_GAP?ITEM_EVERY_BEHIND:ITEM_EVERY;}});
   this.players.forEach((p,t)=>{if(p.towerHot&&this.clock<p.towerHot.until)this.towers.forEach(x=>{if(x.team===t&&x.hp>0)this.restore(x,x.max*p.towerHot.pct*dt,true);});});
   for(let t=0;t<2;t++)if(this.auto[t])this.ai(t,dt);
-  this.fieldsStep(dt);this.projectileStep(dt);
+  this.fieldsStep(dt);this.projectileStep(dt);this.guardStep();
   for(const a of this.all()){
    if(a.deathAt&&this.clock>=a.deathAt){a.deathAt=0;a.hp=0;a.killer=a.deathKiller;continue;}
    if(a.hp<=0)continue;a.moving=false;if(a.ttl!==undefined){a.ttl-=dt;if(a.ttl<=0){a.hp=0;continue;}}
@@ -629,6 +669,11 @@ class Battle{
    let enemies=this.all().filter(b=>this.canTarget(a,b));
    const reach=a.range*(this.has(a,'reach')?1.25:1),range=enemies.filter(b=>dist(a,b)<=reach+b.r&&(!a.minRange||dist(a,b)>=a.minRange));
    if(range.length&&a.dmg>0){range.sort((b,c)=>dist(a,b)-dist(a,c));if(a.cool<=0){this.attack(a,range[0]);if(a.multi)for(const t of range.slice(1,a.multi))this.attack(a,t,true);}a.angle=Math.atan2(range[0].x-a.x,-(range[0].y-a.y));continue;}
+   if(a.guardian&&a.guardTower){ /* 護印英魂：只守塔，不追過河 */
+    const an={x:a.guardTower.x,y:a.guardTower.y+(a.team?50:-50),r:0},tg=enemies.filter(u=>dist(u,an)<GUARD_LEASH+u.r).sort((u,v)=>dist(a,u)-dist(a,v))[0];
+    if(tg)this.move(a,tg,dt);else if(dist(a,an)>16)this.move(a,an,dt);
+    a.y=a.team?Math.min(a.y,326):Math.max(a.y,374);continue;
+   }
    if(a.tower||a.type==='building')continue;
    if(a.buffCast&&this.clock<(a.castUntil||0)){const al=this.units.filter(u=>u!==a&&u.team===a.team&&u.hp>0&&!(u.buffCast&&this.clock<(u.castUntil||0))&&u.dmg>0&&u.type!=='building'&&!u.flying&&!u.totem);let best=null,bs=-1;for(const u of al){const k=al.filter(o=>dist(o,u)<90).length*1000-dist(a,u);if(k>bs){bs=k;best=u;}}if(best&&dist(a,best)>42)this.move(a,best,dt);continue;}
    let targets=enemies.filter(b=>!b.tower&&dist(a,b)<145&&((a.y-350)*(b.y-350)>0||a.flying||Math.abs(a.x-b.x)<55));
@@ -656,5 +701,6 @@ class Battle{
   }
  }
 }
-const api={Battle,MOVE_SCALE,ITEM_EVERY_BEHIND,ITEM_BEHIND_GAP,pureFaction,PURE_NEED,PURE_BONUS,PURE_BONUS_SPIRIT,PURE_CD,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,OMEN_BASE,OMEN_MULT,OMEN_BURST,OMEN_TRAITS,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
+const RETIRED=D.retired||[];
+const api={Battle,HERO_COUNTER_COST,HERO_ACTIVE_COST,RETIRED,GUARDIANS,MOVE_SCALE,ITEM_EVERY_BEHIND,ITEM_BEHIND_GAP,pureFaction,PURE_NEED,PURE_BONUS,PURE_BONUS_SPIRIT,PURE_CD,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,OMEN_BASE,OMEN_MULT,OMEN_BURST,OMEN_TRAITS,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
 })(globalThis);

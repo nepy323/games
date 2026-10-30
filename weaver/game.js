@@ -57,7 +57,7 @@ function randomHeroFor(deck,fallback){
  return pool.length?pool[Math.floor(Math.random()*pool.length)]:fallback;
 }
 /* 傳回帶隨機英雄的對手預設（複製，不改動原預設） */
-function withRandomHero(p){const h=randomHeroFor(p[2],p[3]&&p[3][0]);return [p[0],p[1],p[2],h?[h]:[]];}
+function withRandomHero(p){const paired=p[3]&&p[3][0],h=(paired&&CARDS[paired]&&CARDS[paired].faction<6&&p[2].filter(id=>CARDS[id]&&CARDS[id].faction===CARDS[paired].faction).length>=7&&Math.random()<.6)?paired:randomHeroFor(p[2],paired); /* 純系牌組六成帶原配英雄，其餘隨機 */return [p[0],p[1],p[2],h?[h]:[]];}
 function newLobby(){
  if(typeof cancelMatch==='function')cancelMatch();
  const e=$('enemyPreset').value;const enemy=withRandomHero(e==='random'?presets[Math.floor(Math.random()*presets.length)]:presets[+e]);
