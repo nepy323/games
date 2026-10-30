@@ -30,11 +30,11 @@ document.getElementById('gtabs').onclick=e=>{const b=e.target.closest('button');
 
 /* 遺物與寶物 */
 const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const relicCard=(src,name,desc,rar)=>`<div class="gp-card"><img class="ic" src="${src}" alt=""><div><b>${esc(name)}</b>${rar?`<span class="rar ${rar}">${rar==='rare'?'稀有':'普通'}</span>`:''}<p>${esc(desc)}</p></div></div>`;
+const relicCard=(src,name,desc)=>`<div class="gp-card"><img class="ic" src="${src}" alt=""><div><b>${esc(name)}</b>${desc?`<p>${esc(desc)}</p>`:''}</div></div>`;
 document.getElementById('relics').innerHTML=
- `<h2>征服旅程的遺物 <small>單人模式中帶著走，整輪有效</small></h2><div class="gp-grid">${RELICS.map(r=>relicCard(r.src,r.name,r.desc,r.rarity)).join('')}</div>`+
- `<h2>英雄強化 <small>單人模式中替英雄升級</small></h2><div class="gp-grid">${HERO_UPS.map(r=>relicCard(r.src,r.name,r.desc)).join('')}</div>`+
- `<h2>戰場寶物 <small>無盡鏖戰與征服旅程的戰鬥中隨機取得，單次使用</small></h2><div class="gp-grid">${SixEngine.ITEMS.map(i=>relicCard('assets/relics/relic-'+String(i.art).padStart(2,'0')+'.webp',i.name,i.desc)).join('')}</div>`;
+ `<h2>征服旅程的遺物</h2><div class="gp-grid">${RELICS.map(r=>relicCard(r.src,r.name,'')).join('')}</div>`+
+ `<h2>英雄強化</h2><div class="gp-grid">${HERO_UPS.map(r=>relicCard(r.src,r.name,'')).join('')}</div>`+
+ `<h2>戰場寶物 <small>戰鬥中隨機取得，單次使用</small></h2><div class="gp-grid">${SixEngine.ITEMS.map(i=>relicCard('assets/relics/relic-'+String(i.art).padStart(2,'0')+'.webp',i.name,i.desc)).join('')}</div>`;
 /* 場景 */
 document.getElementById('scenes').innerHTML=
  `<h2>戰場 <small>無盡鏖戰會隨機選用；章節戰場只出現在征服旅程</small></h2><div class="gp-grid">${SixPresentation.maps.map(m=>`<article class="sc-card"><img src="assets/battlefields/${m.id}.webp" alt="" loading="lazy"><div><b>${esc(m.name)}</b>${m.story?'<span class="rar rare">章節</span>':''}<p>${esc(m.subtitle)}</p></div></article>`).join('')}</div>`;

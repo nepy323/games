@@ -40,7 +40,7 @@ function icon(c){
 function info(c){
  let stats=[['種族',c.race],['定位',c.category],['屬性',c.element],['資源',c.cost],['部署',c.type!=='tactic'||c.homeOnly||c.effect==='mine'?'己方半場':'全戰場']];
  if(c.type!=='tactic')stats.push(['生命',c.hp+(c.n>1?' × '+c.n:'')],['傷害／間隔',c.dmg+' / '+c.rate+' 秒'],['攻擊目標',c.siege?'僅建築':c.airHit?'地面、空中、建築':'地面、建築'],['射程',c.range],['特性',[c.flying?'飛行':null,c.charge?'衝鋒':null,c.splash?'範圍攻擊':null,c.cone?'錐形火焰':null,c.revive?'一次復起':null,c.deathBlast?'死亡爆炸':null,c.antiLarge?'反大型':null,c.heal?'治療':null,c.ward?'裝甲光環':null,c.aura?'攻速光環':null,c.companion?'伴隨獵鷹':null,c.regen?'生命恢復':null,c.slowHit?'命中緩速':null,c.summon?'週期產兵':null,c.armor?'護甲':null].filter(Boolean).join('、')||'基礎作戰']);
- else stats.push(['效果',effects[c.effect]],['作用半徑',c.radius],...(c.damage?[['傷害',c.damage+(c.effect==='fire'||c.effect==='curse'?' / 秒':'')]]:[]),...(c.duration?[['持續',c.duration+' 秒']]:[]),...(c.delay?[['預告',c.delay+' 秒']]:[]));
+ else stats.push(['類型',tacticKind(c)],['效果',effects[c.effect]],['作用半徑',c.radius],...(c.damage?[['傷害',c.damage+(c.effect==='fire'||c.effect==='curse'?' / 秒':'')]]:[]),...(c.duration?[['持續',c.duration+' 秒']]:[]),...(c.delay?[['預告',c.delay+' 秒']]:[]));
  if(c.type==='building')stats.push(['存在時間',c.duration+' 秒，持續衰敗']);
  return `<div class="detail-head"><span class="detail-art" data-inspect="${c.id}" title="點擊查看完整卡牌">${icon(c)}</span><div><h3>${c.name}</h3><small style="color:${factions[c.faction][2]}">${factions[c.faction][0]} · ${names[c.type]}</small></div></div>${SixPresentation.chips(c)}<p class="detail-desc">${c.rules||c.desc}${c.experimental?' <span class="testtag">原型新增</span>':''}</p><dl>${stats.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`;
 }
@@ -71,7 +71,7 @@ function selectCard(i){
  $('hint').textContent=c.type==='tactic'&&!c.homeOnly&&c.effect!=='mine'?c.name+'：點擊目標區域':c.name+'：點擊己方半場';beep(330);
 }
 function updateUI(){
- const t=Math.ceil(battle.remaining),p=battle.players[0];$('resonance').hidden=!p.deck.includes('x_portal');$('resonance').textContent='共鳴 '+p.resonance+' / 12 · 下一波最多消耗 4';$('timer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');$('phase').textContent=battle.overtime?'加時 · 外塔決勝':t<=60?'雙倍資源 ×2':'';$('energy').textContent=Math.trunc(p.energy);$('energy').classList.toggle('debt',p.energy<0);$('energyFill').style.width=Math.max(0,p.energy)*10+'%';$('regen').textContent=p.energy>=9.99?'資源已滿':t<=60||battle.overtime?'雙倍回復':'戰力回復';$('playerScore').textContent='◆'.repeat(battle.score(0))+'◇'.repeat(2-battle.score(0));$('enemyScore').textContent='◆'.repeat(battle.score(1))+'◇'.repeat(2-battle.score(1));renderHand();$('hand').querySelectorAll('button').forEach((b,i)=>{const c=CARDS[p.hand[i]],alive=c.tier==='hero'&&battle.units.some(u=>u.team===0&&u.artId===c.id&&u.hp>0);b.classList.toggle('poor',c.cost>p.energy||alive);b.title=alive?'英雄仍在場，陣亡後可再次部署':c.abilityName||c.name;});
+ const t=Math.ceil(battle.remaining),p=battle.players[0];$('resonance').hidden=!p.deck.includes('x_portal');$('resonance').textContent='共鳴 '+p.resonance+' / 12 · 下一波最多消耗 4';$('timer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');$('phase').textContent=battle.overtime?'加時 · 外塔決勝':t<=60?'雙倍資源 ×2':'';$('energy').textContent=Math.trunc(p.energy);$('energy').classList.toggle('debt',p.energy<0);$('energyFill').style.width=Math.max(0,p.energy)*10+'%';renderCrystals(p.energy);$('regen').textContent=p.energy>=9.99?'資源已滿':t<=60||battle.overtime?'雙倍回復':'戰力回復';$('playerScore').textContent='◆'.repeat(battle.score(0))+'◇'.repeat(2-battle.score(0));$('enemyScore').textContent='◆'.repeat(battle.score(1))+'◇'.repeat(2-battle.score(1));renderHand();$('hand').querySelectorAll('button').forEach((b,i)=>{const c=CARDS[p.hand[i]],alive=c.tier==='hero'&&battle.units.some(u=>u.team===0&&u.artId===c.id&&u.hp>0);b.classList.toggle('poor',c.cost>p.energy||alive);b.title=alive?'英雄仍在場，陣亡後可再次部署':c.abilityName||c.name;});
  const lk=battle.logs.map(x=>x.text+x.time).join('');if(lk!==lastLog){lastLog=lk;$('log').innerHTML=battle.logs.map(l=>`<div><time>${Math.floor(l.time/60)}:${String(Math.floor(l.time%60)).padStart(2,'0')}</time>${l.text}</div>`).join('');}
 }
 function point(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*600,y:(e.clientY-r.top)/r.height*700};}
@@ -101,7 +101,17 @@ $('guideBtn').onclick=()=>{if(typeof cancelMatch==='function')cancelMatch();if(m
 window.addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(e.target.tagName)||$('guide').open||view!=='battle')return;if(e.key>='1'&&e.key<='4')selectCard(+e.key-1);if(e.key.toLowerCase()==='p')mode==='paused'?resume():pause();if(e.key==='Escape'){selected=-1;renderHand();}});document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing')pause();});
 function line(x,y,tx,ty,col,w=1){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tx,ty);ctx.stroke();}
 function circle(x,y,r,col,fill=false){ctx.beginPath();ctx.arc(x,y,Math.max(.1,r),0,Math.PI*2);ctx[fill?'fillStyle':'strokeStyle']=col;ctx[fill?'fill':'stroke']();}
-function bar(x,y,f,w,col){ctx.fillStyle='#0e150c';ctx.fillRect(x-w/2-1,y-1,w+2,6);ctx.fillStyle=col;ctx.fillRect(x-w/2,y,w*Math.max(0,Math.min(1,f)),4);}
+/* 血條會被記下來，特效畫完後再重畫一次，所以特效再花，血條也在最上面 */
+let barLog=null;
+/* 能量水晶：10 顆；空心菱形＝沒有、實心淡藍＝有，下一顆隨回復由下往上填滿；超過 10（預知儲蓄）全亮並閃爍；負數（欠資源）全空並轉紅 */
+const CRYSTAL_SVG=cls=>`<svg class="${cls}" viewBox="0 0 20 26" aria-hidden="true">${cls==='hollow'?'<polygon points="10,1.5 18.5,10 10,24.5 1.5,10"/>':'<polygon fill="#a9e2ff" points="10,1.5 18.5,10 10,24.5 1.5,10"/><polygon fill="#eefaff" points="10,1.5 18.5,10 10,12.5 1.5,10"/><polygon fill="#6fb6e6" points="1.5,10 10,12.5 10,24.5"/><polygon fill="#4a95cb" points="18.5,10 10,12.5 10,24.5"/>'}</svg>`;
+let crystalKey='';
+function renderCrystals(e){const box=document.getElementById('crystals');if(!box)return;
+ if(!box.children.length)box.innerHTML=Array.from({length:10},()=>`<i class="cr">${CRYSTAL_SVG('hollow')}${CRYSTAL_SVG('fill')}</i>`).join('');
+ const key=Math.round(Math.max(-1,Math.min(11,e))*25)+'';if(key===crystalKey)return;crystalKey=key;
+ for(let k=0;k<10;k++){const f=Math.max(0,Math.min(1,e-k)),el=box.children[k];el.style.setProperty('--f',f.toFixed(2));el.classList.toggle('on',f>=1);}
+ box.classList.toggle('over',e>10);box.classList.toggle('debt',e<0);}
+function bar(x,y,f,w,col){ctx.fillStyle='#0e150c';ctx.fillRect(x-w/2-1,y-1,w+2,6);ctx.fillStyle=col;ctx.fillRect(x-w/2,y,w*Math.max(0,Math.min(1,f)),4);if(barLog)barLog.push([x,y,f,w,col]);}
 const teamColor=t=>t?'#df8b75':'#bad49f';
 function drawTowerFallback(t){
  const {x,y,r}=t;if(t.hp<=0){ctx.fillStyle='#33392b';ctx.fillRect(x-23,y-15,46,30);for(let i=0;i<5;i++){ctx.fillStyle=i%2?'#545543':'#414938';ctx.fillRect(x-24+i*10,y-10+(i%2)*8,9,13);}return;}
@@ -148,8 +158,8 @@ function draw(){
   if(mouse){const err=battle.legal(c,0,mouse.x,mouse.y);ctx.lineWidth=1.5;circle(mouse.x,mouse.y,c.type==='tactic'?c.radius:25,err?'#e48a79':'#ead6a0');ctx.fillStyle=err?'#d7675a15':'#dccb8d15';ctx.fill();}
  }
  for(const f of battle.fields){const c=f.c;ctx.lineWidth=1.2;ctx.setLineDash([5,6]);const col=c.effect==='heal'?'#b7d7a1':c.effect==='summon'?'#c7b3e5':c.effect==='mine'?'#c1aa79':'#db9b75';circle(f.x,f.y,c.radius,col+'88');ctx.setLineDash([]);circle(f.x,f.y,c.radius,col+'10',true);if(c.effect==='bomb'||c.effect==='summon'){ctx.lineWidth=3;ctx.strokeStyle=col;ctx.beginPath();ctx.arc(f.x,f.y,c.radius,-Math.PI/2,-Math.PI/2+Math.PI*2*f.age/f.duration);ctx.stroke();}ctx.font='9px sans-serif';ctx.fillStyle=col;ctx.fillText(c.name,f.x,f.y-c.radius-6);}
- battle.towers.forEach(drawFortress);[...battle.units].sort((a,b)=>Number(!!a.flying)-Number(!!b.flying)||a.y-b.y).forEach(drawAnimatedUnit);
- drawFuseHints(); drawProjectiles();drawBattleEffects();drawWeather();ctx.restore();
+ barLog=[];battle.towers.forEach(drawFortress);[...battle.units].sort((a,b)=>Number(!!a.flying)-Number(!!b.flying)||a.y-b.y).forEach(drawAnimatedUnit);
+ drawFuseHints(); drawProjectiles();drawBattleEffects();{const L=barLog;barLog=null;if(L)for(const a of L)bar(...a);}drawWeather();ctx.restore();
 }
 initVisualUI();newLobby();$('detail').innerHTML='';let last=performance.now();function loop(now){let dt=Math.min(.06,(now-last)/1000);last=now;if(mode==='playing'){for(let i=0;i<speed;i++)battle.step(dt);if(battle.state==='ended')endUI();}uiClock+=dt;if(uiClock>.1){updateUI();uiClock=0;}if(view==='battle')draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
 // Read-only access for prototype diagnostics.

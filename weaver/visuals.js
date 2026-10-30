@@ -37,6 +37,10 @@ function drawFortress(t){
 function drawAnimatedUnit(u){
  if(u.portal){ctx.save();ctx.translate(u.x,u.y);ctx.fillStyle='#142c36';ctx.strokeStyle=teamColor(u.team);ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,-22,23,37,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle='#aeeade';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,-22,15,29,0,0,Math.PI*2);ctx.stroke();ctx.textAlign='center';ctx.fillStyle='#d8fff0';ctx.font='10px system-ui';ctx.fillText('界隙 '+u.portalWave+'/3',0,-67);ctx.fillText('下一波 '+Math.max(0,Math.ceil(u.portalAt-battle.clock))+'s',0,32);ctx.restore();bar(u.x,u.y+17,u.hp/u.max,45,teamColor(u.team));return;}
  if(u.guardShare&&u.guardTarget){const target=battle.units.find(v=>v.id===u.guardTarget&&v.hp>0);if(target&&Math.hypot(target.x-u.x,target.y-u.y)<85)line(u.x,u.y-12,target.x,target.y-12,'#d7758799',2);}
+ if(u.buffCast&&battle.clock<(u.castUntil||0)){const bc=u.buffCast,left=u.castUntil-battle.clock,fade=Math.min(1,left/2),foe=!!(bc.foe&&bc.foe.length&&!(bc.ally&&bc.ally.length)),col=foe?'#c8689e':'#e8d27a';ctx.save();
+  const looped=drawFx('aura_'+(bc.ring||'holy'),u.x,u.y+4,bc.radius*2.1,bc.radius*1.2,(battle.clock*12%16)/16,0,0,.9*fade,128);
+  if(!looped){const pulse=.5+.5*Math.sin(battle.clock*4+u.id);ctx.globalAlpha=fade*(.32+.14*pulse);ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(u.x,u.y+4,bc.radius,bc.radius*.58,0,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=fade*(looped?.45:.85);ctx.strokeStyle=col;ctx.lineWidth=looped?1.2:2;ctx.setLineDash([7,6]);ctx.lineDashOffset=-battle.clock*10;ctx.beginPath();ctx.ellipse(u.x,u.y+4,bc.radius,bc.radius*.58,0,0,Math.PI*2);ctx.stroke();ctx.restore();}
  if(u.bloodShield>0&&u.bloodUntil>battle.clock){ctx.lineWidth=2;circle(u.x,u.y-15,u.r+12,'#ed739cbb');}
 
  const a=SixArt[u.artId],im=a&&atlasImages[a.src];if(!im||!im.complete||!im.naturalWidth)return drawUnitFallback(u);
@@ -60,7 +64,7 @@ function drawAnimatedUnit(u){
   ctx.globalAlpha=.35+.4*pulse;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.shadowColor=col;ctx.shadowBlur=hero?14:8;ctx.beginPath();ctx.ellipse(u.x,u.y+5,u.r+8,7,0,0,Math.PI*2);ctx.stroke();
   ctx.globalAlpha=1;ctx.shadowBlur=0;
   const sk=SixEngine.SKILLS[u.ability];if(sk){const pr=Math.min(1,(u.skillHits||0)/sk.need);ctx.strokeStyle='#ffe29a';ctx.lineWidth=3;ctx.shadowColor='#ffe29a';ctx.shadowBlur=pr>=1-1/sk.need?10:3;ctx.beginPath();ctx.ellipse(u.x,u.y+5,u.r+8,7,0,-Math.PI/2,-Math.PI/2+Math.PI*2*pr);ctx.stroke();ctx.shadowBlur=0;}
-  const label=hero?'★ 英雄':'菁英',by=u.y-h-flight-6;ctx.font='bold '+Math.round(10*viewScale())+'px system-ui';const bw=ctx.measureText(label).width+10;
+  const nm=String(u.name||'').split('・')[0],label=hero?'★ '+(nm||'英雄'):(nm||'菁英'),by=u.y-h-flight-6;ctx.font='bold '+Math.round(10*viewScale())+'px system-ui';const bw=ctx.measureText(label).width+10;
   ctx.fillStyle=hero?'#3a2606ee':'#0f2236ee';ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(u.x-bw/2,by-11*viewScale(),bw,14*viewScale(),7);ctx.fill();ctx.stroke();
   ctx.textAlign='center';ctx.fillStyle=col;ctx.fillText(label,u.x,by);ctx.restore();}
  if(!u.totem)bar(u.x,u.y+14,u.hp/u.max,(u.type==='building'?40:28)*Math.min(viewScale(),1.25),tc);
@@ -81,13 +85,31 @@ function drawProjectiles(){for(const p of battle.projectiles){
  else {ctx.shadowColor=col;ctx.shadowBlur=10;line(x-dx*.1,y-dy*.1,x,y,col+'88',3);circle(x,y,4,col,true);circle(x,y,1.5,'#fff8df',true);}
  ctx.restore();
 }}
+/* 像素特效（assets/fx，64 像素格、9 列色彩）：打擊火花、斬擊、逆反共振魔法陣。疊加發光＋平滑縮放；圖沒載入或開了減少動態就退回原本的線條。 */
+/* 屬性→色列：帝國（戰令／火藥）金橘、血誓紅、永寂（靈魂／腐朽）紫綠、玄鐵（符文）青藍、蒼林（自然）綠、裂牙（疾風）土黃，物理白，律／混沌紫 */
+const FXROW={火焰:0,火藥:0,血誓:7,冰霜:2,神聖:4,戰令:4,物理:5,疾風:4,自然:3,腐朽:3,靈魂:1,律:1,混沌:1,符文:2};
+const fxSheets={};
+function fxSheet(name){let i=fxSheets[name];if(!i){i=fxSheets[name]=new Image();i.src='assets/fx/'+name+'.png';}return i.complete&&i.naturalWidth?i:null;}
+function drawFx(name,x,y,w,h,age,row,rot=0,alpha=1,fs=64){const img=fxSheet(name);if(!img||reducedMotion)return false;const n=Math.round(img.naturalWidth/fs),fr=Math.min(n-1,Math.floor(age*n));
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha*=alpha;ctx.imageSmoothingEnabled=true;ctx.translate(x,y);if(rot)ctx.rotate(rot);ctx.drawImage(img,fr*fs,row*fs,fs,fs,-w/2,-h/2,w,h);ctx.restore();return true;}
+/* 大範圍特效不把小圖硬放大（會糊成一團）：爆炸改成範圍內散布數個小爆裂，魔法陣改成沿圓周排列小片段；單張最大約 150 像素（約 2.3 倍） */
+const fxRnd=(f,k)=>{const t=Math.sin((f.seed||1)*12.9898+k*78.233)*43758.5453;return t-Math.floor(t);};
+const fxAge=a=>Math.max(0,Math.min(.999,a));
+function drawFxScatter(f,name,R,age,row,alpha=1){const size=Math.min(150,R*1.25),n=Math.max(1,Math.min(9,Math.round(R/60*R/60*.9)));
+ for(let i=0;i<n;i++){const ang=fxRnd(f,i*2+1)*6.283,rad=i?Math.sqrt(fxRnd(f,i*2+2))*R*.62:0;drawFx(name,f.x+Math.cos(ang)*rad,f.y-6+Math.sin(ang)*rad*.6,size,size*.78,fxAge(age-i*.04),row,0,alpha);}}
+function drawFxRing(f,name,R,age,row,alpha=1){const n=Math.max(6,Math.min(18,Math.round(6.283*R/80))),w=Math.min(130,R*.7);
+ for(let i=0;i<n;i++){const t=i/n*6.283;drawFx(name,f.x+Math.cos(t)*R*.92,f.y+Math.sin(t)*R*.92*.42,w,w*.5,fxAge(age-(i%3)*.05),row,0,alpha);}}
 function drawBattleEffects(){for(const f of battle.fx){const a=Math.max(0,f.life/f.max),age=1-a;ctx.save();ctx.globalAlpha=a;
  if(f.type==='dust'||f.type==='steam'){if(reducedMotion){ctx.restore();continue;}for(let i=0;i<4;i++){const angle=f.seed+i*2.4;ctx.fillStyle=f.type==='steam'?'#c4d1cb66':currentMap.weather==='snow'?'#dbe5e5aa':'#b7a58a77';const x=f.x+Math.cos(angle)*age*f.r+(f.dx||0)*age*9,y=f.y+Math.sin(angle)*age*f.r*.45+(f.dy||0)*age*8-age*4;ctx.beginPath();ctx.ellipse(x,y,2+age*3,1+age*2,angle,0,7);ctx.fill();}}
+ else if(f.type==='impact'&&drawFx(f.r>=24?'spark_l':'spark_s',f.x,f.y-18,f.r>=24?46:32,f.r>=24?46:32,age,FXROW[f.element]??5)){}
  else if(f.type==='impact'||f.type==='muzzle'){const col=SixPresentation.colors[f.element]||'#ffe3ad';ctx.strokeStyle=col;ctx.lineWidth=1.5;for(let i=0;i<(reducedMotion?3:7);i++){const q=i*2.4+f.x;line(f.x+Math.cos(q)*age*f.r*.4,f.y-18+Math.sin(q)*age*f.r*.4,f.x+Math.cos(q)*(3+age*f.r),f.y-18+Math.sin(q)*(3+age*f.r),col,1.4);}if(f.type==='muzzle')circle(f.x,f.y-18,5*a,'#ffe1a5',true);}
+ else if(f.type==='slash'&&drawFx('slash',f.x,f.y-15,40,40,age,5,f.angle+Math.PI/2)){}
  else if(f.type==='slash'){ctx.lineWidth=2;ctx.strokeStyle='#eee3c4';ctx.beginPath();ctx.arc(f.x,f.y-15,10+age*12,f.angle-.9,f.angle+.7);ctx.stroke();}
- else if(f.type==='omen'){ctx.save();for(let k=0;k<3;k++){const q=Math.max(0,age-k*.14);if(q<=0)continue;ctx.globalAlpha=Math.max(0,(1-q))*.8;ctx.lineWidth=3-k*.7;ctx.strokeStyle=k===1?'#e0507a':'#a46ae0';ctx.beginPath();ctx.ellipse(f.x,f.y,f.r*q+4,(f.r*q+4)*.42,0,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=Math.max(0,1-age)*.5;ctx.fillStyle='#1a0626';ctx.beginPath();ctx.ellipse(f.x,f.y,f.r*.55,f.r*.22,0,0,Math.PI*2);ctx.fill();ctx.restore();}
- else if(f.type==='blast'){ctx.lineWidth=3*a;circle(f.x,f.y,f.r*age+3,'#dfb57c');circle(f.x,f.y,Math.max(2,22*a),'#ffd695'+(a>.5?'99':'44'),true);if(!reducedMotion)for(let j=0;j<9;j++){const angle=j*2.4;circle(f.x+Math.cos(angle)*age*f.r,f.y+Math.sin(angle)*age*f.r*.6-15*age,2+3*a,'#c9b39488',true);}}
- else{ctx.lineWidth=1.4;circle(f.x,f.y,f.r*age+2,f.type==='heal'?'#b9dca3':teamColor(f.team));if(f.type==='heal'){line(f.x-4,f.y-17,f.x+4,f.y-17,'#d5f1b8',2);line(f.x,f.y-21,f.x,f.y-13,'#d5f1b8',2);}if(f.type==='cast'&&f.label){if(f.big){ctx.font='bold '+Math.round(16*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(f.label,f.x,f.y-34-age*22);ctx.fillStyle='#ffe29a';ctx.fillText(f.label,f.x,f.y-34-age*22);}else{ctx.font=Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e2b5';ctx.fillText(f.label,f.x,f.y-25-age*15);}}}
+ else if(f.type==='omen'){drawFxRing(f,'circle',f.r,age,1,.85);drawFx('circle',f.x,f.y,Math.min(150,f.r*1.3),Math.min(150,f.r*1.3)*.45,age,1,0,.9);ctx.save();for(let k=0;k<3;k++){const q=Math.max(0,age-k*.14);if(q<=0)continue;ctx.globalAlpha=Math.max(0,(1-q))*.8;ctx.lineWidth=3-k*.7;ctx.strokeStyle=k===1?'#e0507a':'#a46ae0';ctx.beginPath();ctx.ellipse(f.x,f.y,f.r*q+4,(f.r*q+4)*.42,0,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=Math.max(0,1-age)*.5;ctx.fillStyle='#1a0626';ctx.beginPath();ctx.ellipse(f.x,f.y,f.r*.55,f.r*.22,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+ else if(f.type==='towerfall'){const offs=[[0,-8,0],[-28,8,.1],[26,4,.2],[-10,-30,.32],[12,14,.42]];offs.forEach(([dx,dy,dl])=>{const a2=(age-dl)/(1-dl);if(a2>0&&a2<1)drawFx('explosion',f.x+dx,f.y+dy,150,150,a2,0,0,.95,128);});}
+ else if(f.type==='fusion'){drawFx('spiral',f.x,f.y-8,112,112,age,1,0,.95);for(let i=0;i<6;i++){const ang=i*1.047+(f.seed||0),rr=(1-age)*72;drawFx('spark_s',f.x+Math.cos(ang)*rr,f.y-8+Math.sin(ang)*rr*.6,30,30,age,1,0,.9);}}
+ else if(f.type==='blast'){drawFxScatter(f,f.r>=95?'burst_l':'burst_s',f.r,age,0,.75);ctx.lineWidth=3*a;circle(f.x,f.y,f.r*age+3,'#dfb57c');circle(f.x,f.y,Math.max(2,22*a),'#ffd695'+(a>.5?'99':'44'),true);if(!reducedMotion)for(let j=0;j<9;j++){const angle=j*2.4;circle(f.x+Math.cos(angle)*age*f.r,f.y+Math.sin(angle)*age*f.r*.6-15*age,2+3*a,'#c9b39488',true);}}
+ else{if(f.type==='spawn')drawFx('ripple',f.x,f.y+4,f.r*3.2,f.r*1.5,age,f.team?0:3);else if(f.type==='heal')drawFx('halo',f.x,f.y+4,f.r*3,f.r*1.4,age,3);else if(f.type==='cast')drawFx('mandala',f.x,f.y+2,Math.min(160,f.r*2.4),Math.min(160,f.r*2.4)*.5,age,FXROW[f.element]??4,0,.85);ctx.lineWidth=1.4;circle(f.x,f.y,f.r*age+2,f.type==='heal'?'#b9dca3':teamColor(f.team));if(f.type==='heal'){line(f.x-4,f.y-17,f.x+4,f.y-17,'#d5f1b8',2);line(f.x,f.y-21,f.x,f.y-13,'#d5f1b8',2);}if(f.type==='cast'&&f.label){if(f.big){ctx.font='bold '+Math.round(16*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(f.label,f.x,f.y-34-age*22);ctx.fillStyle='#ffe29a';ctx.fillText(f.label,f.x,f.y-34-age*22);}else{ctx.font=Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e2b5';ctx.fillText(f.label,f.x,f.y-25-age*15);}}}
  ctx.restore();}}
 
 /* 融煉提示：選著「逆反共振」時，場上每一對可融煉的己方律靈之間連線，並標出要點擊的位置 */

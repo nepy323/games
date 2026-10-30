@@ -42,12 +42,14 @@ const ROLE_BY_EFFECT={bomb:'burst',barrage:'cannon',fire:'flame',bolt:'aim',heal
 const roleKey=c=>c.type==='tactic'?ROLE_BY_EFFECT[c.effect]:c.type==='building'||c.totem?'tower':ROLE_BY_CATEGORY[c.category];
 const roleIcon=(k,cls='')=>`<span class="yc-glyph yc-role ${cls}" style="--m:url(assets/roles/${k}.png)" aria-hidden="true"></span>`;
 const badgeGlyph=c=>{const k=roleKey(c);return k?roleIcon(k):glyphSVG(classGlyphKey(c));};
+/* 戰術分三類：援軍（叫出會打的生物）、法術（直接對範圍造成傷害）、狀態（改變附近強弱：增益、減益、治療、控制）；逆反共振維持「禁忌召喚」 */
+const tacticKind=c=>c.effect==='resonate'?'禁忌召喚':['summon','portal'].includes(c.effect)?'援軍':['bomb','barrage','fire','bolt'].includes(c.effect)?'法術':'狀態';
 const classGlyphKey=c=>c.type==='tactic'?(EFFECT_GLYPH[c.effect]||'burst'):c.type==='building'||c.totem?'tower':(SHAPE_BY_CATEGORY[c.category]||'sq');
 
 /* 直式卡面：名稱條＋費用、插圖（右下兵種圖示、左下旗徽）、數值條。框色：普通=古銅、菁英=銀藍、英雄=金、戰術=紫。手牌、爬塔獎勵共用。 */
 function cardFace(c,o={}){
  const f=factions[c.faction],tier=c.type==='tactic'?'tactic':c.tier==='hero'?'hero':c.tier==='elite'?'elite':'';
- const stats=c.type==='tactic'?`<span class="yc-eff">${effects[c.effect]||'戰術'}</span>`
+ const stats=c.type==='tactic'?`<span class="yc-eff">${tacticKind(c)}</span>`
   :c.totem?`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-dur" title="持續時間">${c.duration}<i>秒</i></span>`
   :`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span>`;
  const art=String(icon(c)).replace('<svg class="unit-art"','<svg preserveAspectRatio="xMidYMid slice" class="unit-art"');
@@ -71,13 +73,14 @@ function bannerSummary(deck,extra=[]){
  return cnt.map((n,f)=>({f,n,lv:lv[f],b:BANNERS[f],fac:factions[f]})).filter(o=>o.n>0);
 }
 function bannerHTML(deck,extra=[]){
- const {BANNER_NEED}=SixEngine,rows=bannerSummary(deck,extra);
+ const {BANNER_NEED,pureFaction,PURE_BONUS,PURE_BONUS_SPIRIT,PURE_CD}=SixEngine,rows=bannerSummary(deck,extra);
  if(!rows.length)return '';
+ const pf=pureFaction(deck,extra),pureRow=pf>=0?`<div class="banner-row on" style="--f:${factions[pf][2]}"><span class="b-crest">${SixPresentation.crest(pf)}</span><span class="b-name"><b>${factions[pf][0].slice(0,2)}·同系滿編</b></span><span class="b-now">同系英雄與菁英 +${Math.round((pf===6?PURE_BONUS_SPIRIT:PURE_BONUS)*100)}% 生命傷害，英雄技能冷卻 −${Math.round((1-PURE_CD)*100)}%</span></div>`:'';
  return '<div class="banner-box"><div class="banner-title">旗印<small>同旗 2／4／6 張解鎖</small></div>'+rows.map(o=>{
   const next=o.lv<3?`再 ${BANNER_NEED[o.lv]-o.n} 張：${o.b.text[o.lv]}`:'已達最高檔';
   const now=o.lv?o.b.text[o.lv-1]:'尚未解鎖';
   return `<div class="banner-row ${o.lv?'on':''}" style="--f:${o.fac[2]}"><span class="b-crest">${SixPresentation.crest(o.f)}</span><span class="b-name"><b>${o.fac[0].slice(0,2)}·${o.b.name}</b><i class="pips">${[0,1,2].map(k=>`<s class="${k<o.lv?'lit':''}"></s>`).join('')}</i><em>${o.n} 張</em></span><span class="b-fx">${now}</span><span class="b-next">${next}</span></div>`;
- }).join('')+'</div>';
+ }).join('')+pureRow+'</div>';
 }
 
 /* 開戰前的一行旗印摘要（只列已解鎖的） */
