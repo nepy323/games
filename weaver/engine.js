@@ -7,7 +7,7 @@ const summons={fuse_fallen:{artId:'fuse_fallen',size:2,ring:true,kin:'暗蝕',ti
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.8,FUSE_BURST_WEAK=.5; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.8、衝擊 ×0.5、共享冷卻；戰術「共振」是儀式，原數值 */
+const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.9,FUSE_BURST_WEAK=.75,FUSE_FULL_HP=1.5,FUSE_FULL_BURST=2; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.9、衝擊 ×0.75、共享冷卻；悖靈（逆共振）生命 ×1.5、登場衝擊 ×2：慢但能救場 */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
@@ -120,8 +120,8 @@ class Battle{
   for(const u of all){u.dead=true;u.hp=0;}this.units=this.units.filter(u=>!u.dead);
   g.fused=other.fused=true;if(!full)this.fuseReadyAt[g.team]=this.clock+FUSE_COOLDOWN;this.counters[g.team].fusions++;
   this.spawn(summons[rec.into],g.team,x,y,1,{derived:true});
-  const nu=this.units.at(-1);if(nu&&!full){nu.hp*=FUSE_WEAK;nu.max*=FUSE_WEAK;nu.dmg*=FUSE_WEAK;nu.name=nu.kin+'合靈';nu.ring=false;nu.size=(nu.size||1)*.8;}
-  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*(full?1:FUSE_BURST_WEAK),true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
+  const nu=this.units.at(-1);if(nu&&full){nu.hp*=FUSE_FULL_HP;nu.max*=FUSE_FULL_HP;}if(nu&&!full){nu.hp*=FUSE_WEAK;nu.max*=FUSE_WEAK;nu.dmg*=FUSE_WEAK;nu.name=nu.kin+'合靈';nu.ring=false;nu.size=(nu.size||1)*.8;}
+  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*(full?FUSE_FULL_BURST:FUSE_BURST_WEAK),true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
   const nm=this.units.at(-1)?.name||summons[rec.into].name;
   if(full){this.effect('omen',x,y,g.team,150,{life:1.3,max:1.3});this.effect('cast',x,y,g.team,90,{label:'裏律降臨：'+nm,big:true});}else this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});
   this.log((g.team?'敵方':'我方')+(full?'逆反共振，裏律降臨：':'律靈合體：')+nm);this.notice.push({team:g.team,text:(full?'裏律降臨：':'合體：')+nm,kind:'fuse'});
@@ -559,5 +559,5 @@ class Battle{
   }
  }
 }
-const api={Battle,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
+const api={Battle,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,FUSE_FULL_HP,FUSE_FULL_BURST,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
 })(globalThis);
