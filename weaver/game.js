@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id),{cards,factions,presets}=SixData,{Battle,CARDS}=SixEngine,cv=$('field'),ctx=cv.getContext('2d');
-const names={troop:'兵種',tactic:'戰術',building:'建築'},effects={resonate:'逆反共振',portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
+const names={troop:'兵種',tactic:'戰術',building:'建築'},effects={resonate:'禁忌召喚',portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
 let legacyDeck=null;
 let deck=[...presets[0][2]],draft=[],battle,selected=-1,mode='ready',speed=1,mouse=null,filter='all',view='battle',sound=false,audioContext,lastHand='',lastLog='',uiClock=0;
 try{const saved=JSON.parse(localStorage.getItem('six-banners-deck'));if(Array.isArray(saved)&&saved.length===8&&new Set(saved).size===8&&saved.every(x=>CARDS[x])){if(saved.filter(x=>CARDS[x].tier==='hero').length<=1)deck=saved;else legacyDeck=saved;}sound=localStorage.getItem('six-banners-sound')==='1';}catch{}

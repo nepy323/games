@@ -4,14 +4,14 @@ const D=typeof module!=='undefined'?require('./cards.js'):root.SixData;
 const CARDS=Object.fromEntries(D.cards.map(c=>[c.id,c]));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const summons={fuse_fallen:{artId:'fuse_fallen',size:2,ring:true,kin:'暗蝕',tier:'elite',multi:3,name:'暗蝕悖靈',hp:1100,dmg:80,speed:28,range:95,rate:1.2,role:'闇',faction:6,airHit:true,slowHit:true,lifesteal:.2},fuse_earth:{artId:'fuse_earth',size:2,ring:true,kin:'地脈',tier:'elite',multi:3,name:'地脈悖靈',hp:1200,dmg:84,speed:26,range:30,rate:1.2,role:'岩',faction:6,armor:.25,heal:30,regen:10},fuse_storm:{artId:'fuse_storm',size:1.9,ring:true,kin:'焰嵐',tier:'elite',multi:2,name:'焰嵐悖靈',hp:520,dmg:120,speed:40,range:145,rate:1.5,role:'火',faction:6,splash:70,airHit:true,ttl:30},fuse_aurora:{artId:'fuse_aurora',size:1.9,ring:true,kin:'極光',tier:'elite',multi:3,name:'極光悖靈',hp:600,dmg:32,speed:30,range:125,rate:1.1,role:'光',faction:6,slowHit:true,airHit:true,heal:46,ward:true},spirit:{artId:"f2_4",name:"界隙靈",hp:300,dmg:12,speed:42,range:24,rate:1.3,role:"魂",faction:4,ttl:12},skel:{artId:"f2_0",name:'衍生骷髏',hp:125,dmg:35,speed:40,range:22,rate:.85,role:'骨',faction:2},thrall:{artId:"f1_0",name:'血肉僕役',hp:155,dmg:42,speed:45,range:22,rate:.8,role:'刃',faction:1},gob:{artId:"f5_0",name:'營地刀兵',hp:170,dmg:40,speed:52,range:22,rate:.8,role:'刃',faction:5},guard:{artId:"f2_3",name:'骸骨壁壘守衛',hp:1600,dmg:85,speed:25,range:28,rate:1.3,role:'盾',armor:.15,faction:2},wolf:{artId:"summon_wolf",name:'狼靈',hp:230,dmg:48,speed:65,range:23,rate:.85,role:'狼',faction:4},hawk:{artId:"summon_hawk",name:'獵鷹',hp:220,dmg:43,speed:63,range:28,rate:.85,role:'翼',faction:4,flying:true,airHit:true}};
-/* 悖靈：逆共振召出的唯一一種裏律單位（借暗蝕的外觀與特性，與環行者專屬的暗蝕悖靈是兩回事）；吃掉的律靈把一個小特性帶給它 */
-summons.omen=Object.assign({},summons.fuse_fallen,{name:'悖靈',kin:'悖'});
+/* 悖靈：逆反共振召出的唯一一種裏律單位（借暗蝕的外觀與特性，與環行者專屬的暗蝕悖靈是兩回事）；吃掉的律靈把一個小特性帶給它 */
+summons.omen=Object.assign({},summons.fuse_fallen,{name:'悖靈',kin:'悖',artId:'paradox',armor:.2});
 const OMEN_BURST={dmg:240,r:110,slow:2};
 const OMEN_TRAITS={n_rock:u=>{u.armor=(u.armor||0)+.15;},n_dew:u=>{u.regen=(u.regen||0)+12;},n_wind:u=>{u.speed*=1.25;},n_fire:u=>{u.splash=Math.max(u.splash||0,55);},n_frost:u=>{u.multi=(u.multi||1)+1;},n_light:u=>{u.heal=Math.max(u.heal||0,30);},n_rot:u=>{u.curseHit=true;},n_dark:u=>{u.lifesteal=(u.lifesteal||0)+.1;}};
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.9,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆共振）基準 ×0.9，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 62%，更高就是 imba） */
+const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.8,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆反共振）基準 ×0.8、本身減傷 20%，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 63%，更高就是 imba） */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
@@ -147,7 +147,7 @@ class Battle{
   if(!best&&gs.length){const a=pos(gs[0]);best={d:0,n:1,x:a.x,y:a.y,ax:a.x,ay:a.y,bx:a.x,by:a.y};}
   return best;
  }
- /* 牌組有 6 張以上律靈系卡牌＝純牌（第三級旗印）；混牌打逆共振是禁忌法術，悖靈只能撐 OMEN_TTL 秒 */
+ /* 牌組有 6 張以上律靈系卡牌＝純牌（第三級旗印）；混牌打逆反共振是禁忌法術，悖靈只能撐 OMEN_TTL 秒 */
  pureSpirit(team){return this.players[team].deck.filter(id=>CARDS[id]&&CARDS[id].faction===6).length>=OMEN_PURE;}
  /* 儀式完成：吃掉施放點範圍內最近的 0～2 組己方律靈，召出悖靈。吃得越多越強（1／1.1／1.2 倍），被吃掉的律靈各把一個小特性帶給悖靈 */
  resolveResonance(f){
@@ -294,7 +294,7 @@ class Battle{
  buff(u,key,duration){if((key==='slow'||key==='root')&&!u.tower&&u.type!=='building'&&this.counters&&!this.has(u,key))this.counters[1-u.team].controls++;u.buffs[key]=Math.max(u.buffs[key]||0,this.clock+duration);}
  has(u,key){return (u.buffs[key]||0)>this.clock;}
  cast(c,team,x,y){
-  if(c.effect==='resonate'){this.effect('cast',x,y,team,c.radius,{label:'逆反共振'});this.effect('omen',x,y,team,c.radius,{life:1,max:1});this.fields.push({c,team,x,y,age:0,tick:0,duration:1});return;}
+  if(c.effect==='resonate'){this.effect('cast',x,y,team,c.radius,{label:'禁忌召喚'});this.effect('omen',x,y,team,c.radius,{life:1,max:1});this.fields.push({c,team,x,y,age:0,tick:0,duration:1});return;}
   this.effect('cast',x,y,team,c.radius,{label:c.name});
   if(c.effect==='portal'){this.spawn({name:c.name,artId:'x_portal',type:'building',hp:800,dmg:0,range:0,speed:0,rate:1,duration:12,portal:true,portalWave:0,portalAt:this.clock,role:'門',faction:4},team,x,y);this.portalStep(this.units.at(-1));return;}
   if(['bomb','summon'].includes(c.effect)){this.fields.push({c,team,x,y,age:0,tick:0,duration:c.delay||1});return;}
