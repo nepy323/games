@@ -3,3 +3,6 @@ Object.assign(globalThis.SixArt,{"f0_20":{"src":"assets/units/new-empire.webp","
 Object.assign(globalThis.SixArt,{"paradox":{"src":"assets/units/paradox.webp","width":1536,"height":1024,"portrait":[14,51,498,937],"front":[512,140,502,753],"back":[1027,136,498,766]}});
 Object.assign(globalThis.SixArt,{"f4_22":{"src":"assets/units/summons.webp","width":1254,"height":1254,"portrait":[33,91,397,538],"front":[518,105,249,518],"back":[914,85,254,542]}});
 Object.assign(globalThis.SixArt,{"f4_23":{"src":"assets/units/forest-b.webp","width":1086,"height":1448,"portrait":[11,700,424,344],"front":[469,700,224,345],"back":[783,700,249,345]}});
+
+/* 新增六位英雄沿用現有單位圖（日後有專屬圖再換） */
+for(const [id,donor] of [['f0_30','f0_3'],['f1_30','f1_20'],['f2_30','f2_20'],['f3_30','f3_20'],['f4_30','f4_20'],['f5_30','f5_3']])if(globalThis.SixArt[donor])globalThis.SixArt[id]=globalThis.SixArt[donor];

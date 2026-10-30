@@ -16,4 +16,7 @@ const RIVALS=[
  {name:'斷牙',faction:5,art:'sd_11',glyph:'牙',color:'#c98d57',style:'aggressive',label:'激進',note:'兩路同時突擊',decks:[13,2],trait:"裂牙的先鋒，專挑你資源不足的瞬間同時突擊兩條路。",counter:"留 3 點資源當預備，別把能量花光；兩路都要有人守。"},
  {name:'環行者',faction:6,art:'n_hero',glyph:'環',color:'#8e6fd0',style:'aggressive',label:'激進',note:'律靈流，持著資源出手',hidden:true,mods:{hp:.75,dmg:.75},deck:['n_rock','n_dew','n_wind','n_fire','n_light','n_rot','n_dark','n_res'],hero:'n_hero',trait:'只有他能讓蝕與闇融煉。手上資源越多，全軍越痛，打到一定次數還會隨手丟出一隻合靈。',counter:'別讓他囤資源。壓著他打，逼他出牌；合靈只存在 12 秒，躲過去就好。'}];
 /* 對手的牌組（預設牌組索引或自訂牌組） */
-function rivalPreset(r){return r.deck?[r.name,'',r.deck,[r.hero]]:presets[r.decks[Math.floor(Math.random()*r.decks.length)]];}
+function rivalPreset(r){
+ if(r.deck)return r.hero&&CARDS[r.hero]&&CARDS[r.hero].faction===6?[r.name,'',r.deck,[r.hero]]:withRandomHero([r.name,'',r.deck,[r.hero]]);
+ return withRandomHero(presets[r.decks[Math.floor(Math.random()*r.decks.length)]]);
+}

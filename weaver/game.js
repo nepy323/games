@@ -48,9 +48,19 @@ function selectedPreset(){return presets.findIndex(p=>p[2].every((id,i)=>deck[i]
 function deckMeta(){if($('runeStatus'))$('runeStatus').textContent='';if($('bannerNote'))$('bannerNote').innerHTML=bannerLine(deck,heroSlot?[heroSlot]:[]);const i=selectedPreset();$('preset').value=i<0?'custom':String(i);$('strategy').textContent=i<0?'自由混編：留意對空、解場與穩定的攻塔手段。':presets[i][1];$('factionStrip').innerHTML=factions.map((f,i)=>{const n=deck.filter(id=>CARDS[id].faction===i).length;return n?`<span title="${f[0]} ${n} 張" style="color:${f[2]}">${f[3]}${n}</span>`:'';}).join('');}
 $('preset').innerHTML=presets.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('')+'<option value="custom" disabled>自訂混編</option>';
 $('enemyPreset').innerHTML+=presets.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('');
+/* 對手隨機配一位英雄：看牌組裡哪個勢力的牌最多（同數則隨機），從該勢力的英雄裡挑一位；律靈系固定用原本的織律者 */
+function randomHeroFor(deck,fallback){
+ const cnt={};for(const id of deck){const c=CARDS[id];if(c&&c.faction>=0&&c.faction<7)cnt[c.faction]=(cnt[c.faction]||0)+1;}
+ const top=Math.max(0,...Object.values(cnt)),fs=Object.keys(cnt).filter(f=>cnt[f]===top),f=+fs[Math.floor(Math.random()*fs.length)];
+ if(f===6)return fallback;
+ const pool=Object.keys(SixEngine.HEROES).filter(id=>CARDS[id].faction===f&&!CARDS[id].aiOnly);
+ return pool.length?pool[Math.floor(Math.random()*pool.length)]:fallback;
+}
+/* 傳回帶隨機英雄的對手預設（複製，不改動原預設） */
+function withRandomHero(p){const h=randomHeroFor(p[2],p[3]&&p[3][0]);return [p[0],p[1],p[2],h?[h]:[]];}
 function newLobby(){
  if(typeof cancelMatch==='function')cancelMatch();
- const e=$('enemyPreset').value;const enemy=e==='random'?presets[Math.floor(Math.random()*presets.length)]:presets[+e];
+ const e=$('enemyPreset').value;const enemy=withRandomHero(e==='random'?presets[Math.floor(Math.random()*presets.length)]:presets[+e]);
  battle=new Battle(deck,enemy[2],Date.now(),{shuffle:true,heroes:[[heroSlot],enemy[3]||[]],items:true});resetVisuals();battle.enemyName=enemy[0];battle.state='ready';mode='ready';selected=-1;lastHand='';lastLog='';
  $('overlay').style.display='flex';$('modalTitle').textContent='把停下的世界，接回去。';$('modalText').innerHTML='佈陣、反制、突破。<br>摧毀敵方主堡，贏下這一局。';$('start').innerHTML='尋找對戰 <span>→</span>';$('modalHint').textContent='';$('resultStats').innerHTML='';$('pause').textContent='暫停';$('preset').disabled=false;$('enemyPreset').disabled=false;$('mapChoice').disabled=false;$('hint').textContent='你的軍團已就緒';deckMeta();$('detail').innerHTML='';renderHand();updateUI();
 }

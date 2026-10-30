@@ -19,10 +19,13 @@ let heroPick=-1;
   ib.innerHTML=`<img src="assets/relics/relic-${String(d.art).padStart(2,'0')}.webp" alt=""><div><small>${foe?'敵方使用寶物':'我方使用寶物'}</small><b>${d.name}</b><p>${d.desc}</p></div>`;
   ib.hidden=false;ib.classList.remove('show');void ib.offsetWidth;ib.classList.add('show');clearTimeout(it);it=setTimeout(()=>{ib.hidden=true;},2800);};
  window.itemBanner=itemBanner;
+const SKILL_DOT='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#2a2418" stroke="#e7c47a" stroke-width="2.5"/><circle cx="16" cy="16" r="6" fill="#e7c47a"/></svg>');
+window.SKILL_DOT=SKILL_DOT;
+ const HERO_HS=new Proxy({},{get:(_,k)=>SixEngine.HEROES[k]&&SixEngine.HEROES[k].hs});
  const heroOf=id=>CARDS[id];
  const build=(st,items)=>{
   const keep=bar.querySelector('#fuseChip');
-  bar.innerHTML=st.map(h=>`<button class="fb-chip fb-hero" data-hero="${h.idx}" style="--ec:${factions[heroOf(h.id).faction][2]}"><span class="fb-face">${artSVG(h.id,'portrait')}<i class="fb-ring"></i><img class="fb-skill" src="assets/icons/skill-${h.id}.webp" alt=""></span><small class="fb-label"></small></button>`).join('')
+  bar.innerHTML=st.map(h=>`<button class="fb-chip fb-hero" data-hero="${h.idx}" style="--ec:${factions[heroOf(h.id).faction][2]}"><span class="fb-face">${artSVG(h.id,'portrait')}<i class="fb-ring"></i><img class="fb-skill" src="assets/icons/skill-${h.id}.webp" alt="" onerror="this.onerror=null;this.src=window.SKILL_DOT"></span><small class="fb-label"></small></button>`).join('')
    +items.map((it,i)=>{const d=SixEngine.ITEMS.find(x=>x.id===it.id);return `<button class="fb-chip fb-item" data-item="${i}" title="${d.name}：${d.desc}"><span class="fb-face"><img src="assets/relics/relic-${String(d.art).padStart(2,'0')}.webp" alt=""></span><small class="fb-label">${d.name}</small></button>`;}).join('');
  };
  const fmt=s=>Math.ceil(s)+'s';
@@ -41,7 +44,7 @@ let heroPick=-1;
    el.style.setProperty('--p',Math.round(h.progress*100)+'%');
    el.classList.toggle('ready',h.ready);el.classList.toggle('field',h.onField);el.classList.toggle('picked',heroPick===h.idx);el.classList.toggle('skill-ready',h.skillReady);
    lab.textContent=h.onField?(h.skillReady?h.skill:'冷卻 '+fmt(h.skillWait)):h.wait>0?'重整 '+fmt(h.wait):h.ready?'登場 ◆'+h.cost:Math.min(h.count,h.need)+' / '+h.need;
-   el.title=h.onField?h.skill+'：'+h.skillDesc:'條件：'+h.cond+' '+h.count+'/'+h.need+'；登場需 ◆'+h.cost;
+   el.title=h.onField?h.skill+'：'+h.skillDesc+(HERO_HS[h.id]?'\n計數「'+HERO_HS[h.id].name+'」每 '+HERO_HS[h.id].need+' 次：'+HERO_HS[h.id].desc:''):'條件：'+h.cond+' '+h.count+'/'+h.need+'；登場需 ◆'+h.cost;
   });
   if(heroPick>=0&&(!st[heroPick]||!st[heroPick].ready)){heroPick=-1;}
   document.body.classList.toggle('hero-pick',heroPick>=0);
