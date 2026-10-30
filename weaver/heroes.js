@@ -11,7 +11,7 @@ let heroPick=-1;
  window.heroQuip=quip;
  /* 技能扣點：能量數字抖動變紅，旁邊飄出 -1 */
  const energyPay=n=>{const box=document.querySelector('.control .resource>div'),num=document.getElementById('energy');if(!box||!num)return;
-  box.classList.remove('pay');void box.offsetWidth;box.classList.add('pay');
+  box.classList.remove('pay');void box.offsetWidth;box.classList.add('pay');const tr=document.querySelector('.control .resource .energytrack');if(tr){tr.classList.remove('pay');void tr.offsetWidth;tr.classList.add('pay');}
   const f=document.createElement('i');f.className='pay-float';f.textContent='−'+(n.paid||1)+' '+n.name;box.appendChild(f);setTimeout(()=>f.remove(),1100);};
  const ib=document.createElement('div');ib.id='itemBanner';ib.hidden=true;document.querySelector('.arena').appendChild(ib);let it=0;
  const itemBanner=n=>{const d=SixEngine.ITEMS.find(x=>x.id===n.item);if(!d)return;const foe=n.team!==0;

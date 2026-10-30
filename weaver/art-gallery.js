@@ -5,14 +5,14 @@ const scene=c=>{const a=SixScenes[c.id];if(!a){const art=SixArt[c.id];if(!art)re
 const icon=scene;
 let cleared0=false;try{cleared0=localStorage.getItem('six-banners-cleared')==='1';}catch{}
 const entries=SixData.cards.filter(c=>(SixScenes[c.id]||SixArt[c.id])&&(!c.aiOnly||cleared0));
-/* 律靈合體：兩隻特定律靈在 8 秒內相鄰部署會合體。蝕與闇不合體（它們是圖騰），不列入。 */
+/* 律靈融煉：兩隻特定律靈在 6 秒內近距離先後部署會融煉。蝕與闇不融煉（它們是圖騰），不列入。 */
 {const byId=Object.fromEntries(SixData.cards.map(c=>[c.id,c])),FU={fuse_earth:{cat:'前排',line:'大地與生機纏在一起的大型律靈。'},fuse_storm:{cat:'射手',line:'烈焰被風推成一道火嵐。'},fuse_aurora:{cat:'支援',line:'冰與光折射成的極光。'}};
  for(const f of SixEngine.FUSIONS){const s=SixEngine.summons[f.into],a=byId[f.a],b=byId[f.b],m=FU[f.into];if(!s||!a||!b||!m)continue;
-  const W=SixEngine.FUSE_WEAK,BW=SixEngine.FUSE_BURST_WEAK,fmtB=k=>`合體瞬間對周圍 ${f.burst.r} 範圍敵軍造成 ${Math.round(f.burst.dmg*k)} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
+  const W=SixEngine.FUSE_WEAK,BW=SixEngine.FUSE_BURST_WEAK,fmtB=k=>`融煉瞬間對周圍 ${f.burst.r} 範圍敵軍造成 ${Math.round(f.burst.dmg*k)} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
   const traits=[s.multi?'一次可攻擊 '+s.multi+' 個目標':'',s.armor?'減傷 '+Math.round(s.armor*100)+'%':'',s.regen?'每秒回復 '+s.regen+' 生命':'',s.heal?'為附近友軍回復生命':'',s.ward?'提供護盾':'',s.slowHit?'命中減速':'',s.splash?'命中點周圍濺射':'',s.airHit?'可對空':'',s.ttl?'存在 '+s.ttl+' 秒':''].filter(Boolean).join('、');
   const at=entries.map(c=>c.faction).lastIndexOf(6)+1;
   entries.splice(at,0,{id:f.into,name:s.kin+'合靈',faction:6,type:'troop',cost:a.cost+b.cost,hp:Math.round(s.hp*W),dmg:Math.round(s.dmg*W),n:1,category:m.cat,tier:'elite',race:'律靈',element:'律',
-   rules:`${a.name}與${b.name}近距離先後部署時自動合體，不需額外費用（卡面費用是兩張牌的合計）。${m.line}合體後取代這兩組。${fmtB(BW)}${traits}。`});}
+   rules:`${a.name}與${b.name}近距離先後部署時自動融煉，不需額外費用（卡面費用是兩張牌的合計）。${m.line}融煉後取代這兩組。${fmtB(BW)}${traits}。`});}
  const o=SixEngine.summons.omen,OB=SixEngine.OMEN_BASE,at2=entries.map(c=>c.faction).lastIndexOf(6)+1,fm=`落地瞬間對周圍 ${SixEngine.OMEN_BURST.r} 範圍敵軍造成 ${Math.round(SixEngine.OMEN_BURST.dmg*OB)} 傷害，並減速 ${SixEngine.OMEN_BURST.slow} 秒。`;
  entries.splice(at2,0,{id:'paradox',name:o.name,faction:6,type:'troop',cost:SixData.cards.find(c=>c.id==='n_res').cost,hp:Math.round(o.hp*OB),dmg:Math.round(o.dmg*OB),n:1,category:'前排',tier:'elite',race:'悖靈',element:'律',
   rules:`逆反共振召出。繼承被獻祭律靈的特性：岩甲減傷、芽露回復、風矢加速、焰芯濺射、霜縛多打一個目標、微光治療、蝕根腐蝕、闇幕吸血。減傷 20%，一次攻擊 3 個目標，命中減速、吸血、可對空。${fm}數值為基準（獻祭 1／2 組再 ×1.1／×1.2）。牌組中律靈牌低於 6 張時，只能存在 12 秒。`});}
@@ -68,4 +68,4 @@ const pool=(t,a)=>`<details class="pool"><summary>${esc(t)}（${a.length}）</su
   return `<article class="fac" style="--fc:${f[2]}"><img class="bd" src="assets/emblems/badge-${i}.webp" alt="" loading="lazy"><div><h3>${esc(f[0])}<small>${esc(f[1])}</small></h3>
   <p class="nm">${mine.length} 張牌${hero.length?'　英雄：'+esc(hero.join('、')):''}${elite.length?'　精英：'+esc(elite.join('、')):''}</p>
   <div class="mk">${b.text.map((t,k)=>`<span><b>${[2,4,6][k]} 張・${esc(b.name)}</b>${esc(t)}</span>`).join('')}</div>
-  ${i===6?'<p>界律之環洩出的八隻律靈，征服旅程的起始牌組。兩隻特定的律靈相鄰部署會合體成更大的律靈。</p>':''}</div></article>`;}).join('');})();
+  ${i===6?'<p>界律之環洩出的八隻律靈，征服旅程的起始牌組。兩隻特定的律靈近距離先後部署會融煉成更大的合靈。</p>':''}</div></article>`;}).join('');})();

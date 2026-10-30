@@ -10,8 +10,8 @@ const OMEN_BURST={dmg:240,r:110,slow:2};
 const OMEN_TRAITS={n_rock:u=>{u.armor=(u.armor||0)+.15;},n_dew:u=>{u.regen=(u.regen||0)+12;},n_wind:u=>{u.speed*=1.25;},n_fire:u=>{u.splash=Math.max(u.splash||0,55);},n_frost:u=>{u.multi=(u.multi||1)+1;},n_light:u=>{u.heal=Math.max(u.heal||0,30);},n_rot:u=>{u.curseHit=true;},n_dark:u=>{u.lifesteal=(u.lifesteal||0)+.1;}};
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
-/* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.8,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆反共振）基準 ×0.8、本身減傷 20%，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 63%，更高就是 imba） */
+/* 律靈融煉：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
+const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.8,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就融煉，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆反共振）基準 ×0.8、本身減傷 20%，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 63%，更高就是 imba） */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
@@ -24,8 +24,8 @@ const HEROES={
  f2_7:{metric:'allDeaths',need:8,cond:'場上累計陣亡',skill:'收魂',cd:30,desc:'立刻召喚 4 隻骷髏'},
  f3_4:{metric:'tacticSpent',need:10,cond:'累計花費於戰術與建築',skill:'符文庇佑',cd:35,desc:'全場友軍受到傷害 -35%（6 秒）'},
  f4_7:{metric:'controls',need:4,timeNeed:25,cond:'累計施加控制',skill:'盤根',cd:30,desc:'敵人較多的一條路線上的地面敵軍定身 4 秒，並在 8 秒內受傷 +25%'},
- n_suo:{metric:'fusions',need:2,cond:'累計合體',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
- n_hero:{metric:'fusions',need:2,cond:'累計合體',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
+ n_suo:{metric:'fusions',need:2,cond:'累計融煉',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
+ n_hero:{metric:'fusions',need:2,cond:'累計融煉',skill:'環行',cd:9999,passive:true,desc:'持有資源加成全軍傷害；命中累積，丟出隨機合靈'},
  f5_5:{metric:'unitsDeployed',need:6,cond:'累計部署單位',skill:'戰鼓',cd:30,desc:'全場友軍攻速 +40%（8 秒）'}
 };
 /* 寶物：系統隨機給的單次道具（不在牌組內），無盡鏖戰專用；數值為弱化版遺物效果 */
@@ -100,7 +100,7 @@ class Battle{
   if((c.type!=='tactic'||c.effect==='portal')&&this.all().some(t=>(t.tower||t.type==='building')&&dist(t,{x,y})<t.r+19))return '請避開現有建築';
   return '';
  }
- /* ---------- 合體 ---------- */
+ /* ---------- 融煉 ---------- */
  noteGroup(c,team,before){
   const made=this.units.slice(before).filter(u=>u.team===team&&u.artId===c.id);if(!made.length)return;
   const g={cardId:c.id,team,t:this.clock,ids:made.map(u=>u.id)};this.groups.push(g);if(FUSE_AUTO)this.tryFuse(g);
@@ -124,10 +124,10 @@ class Battle{
   g.fused=other.fused=true;if(!full)this.fuseReadyAt[g.team]=this.clock+FUSE_COOLDOWN;this.counters[g.team].fusions++;
   this.spawn(summons[rec.into],g.team,x,y,1,{derived:true});
   const nu=this.units.at(-1);if(nu&&!full){nu.hp*=FUSE_WEAK;nu.max*=FUSE_WEAK;nu.dmg*=FUSE_WEAK;nu.name=nu.kin+'合靈';nu.ring=false;nu.size=(nu.size||1)*.8;}
-  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*FUSE_BURST_WEAK,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
+  if(rec.burst){/* 融煉當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*FUSE_BURST_WEAK,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
   const nm=this.units.at(-1)?.name||summons[rec.into].name;
-  if(full){this.effect('omen',x,y,g.team,150,{life:1.3,max:1.3});this.effect('cast',x,y,g.team,90,{label:'裏律降臨：'+nm,big:true});}else this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});
-  this.log((g.team?'敵方':'我方')+(full?'逆反共振，裏律降臨：':'律靈合體：')+nm);this.notice.push({team:g.team,text:(full?'裏律降臨：':'合體：')+nm,kind:'fuse'});
+  if(full){this.effect('omen',x,y,g.team,150,{life:1.3,max:1.3});this.effect('cast',x,y,g.team,90,{label:'裏律降臨：'+nm,big:true});}else this.effect('cast',x,y,g.team,70,{label:'融煉：'+nm});
+  this.log((g.team?'敵方':'我方')+(full?'逆反共振，裏律降臨：':'律靈融煉：')+nm);this.notice.push({team:g.team,text:(full?'裏律降臨：':'融煉：')+nm,kind:'fuse'});
   return true;
  }
  /* 共振：範圍內任意兩組己方律靈都可以被吃掉（以一次部署為一組），最靠近施放點的兩組優先 */
@@ -165,7 +165,7 @@ class Battle{
   this.effect('omen',x,y,team,150,{life:1.3,max:1.3});this.effect('cast',x,y,team,90,{label:'裏律降臨：悖靈',big:true});
   this.log((team?'敵方':'我方')+'逆反共振，裏律降臨：悖靈');this.notice.push({team,text:'裏律降臨：悖靈',kind:'fuse'});
  }
- /* 每 0.5 秒重新檢查窗口內的律靈（冷卻結束後仍相鄰就會合體） */
+ /* 每 0.5 秒重新檢查窗口內的律靈（冷卻結束後仍相鄰就會融煉） */
  fuseSweep(){if(FUSE_AUTO)for(const g of this.groups)if(!g.fused&&this.clock-g.t<=FUSE_WINDOW)this.tryFuse(g);this.groups=this.groups.filter(g=>!g.fused&&this.groupUnits(g).length>0);}
  countPlay(team,c){const k=this.counters[team];if(c.type==='tactic'||c.type==='building')k.tacticSpent+=c.cost;if(c.type!=='tactic'){k.unitsDeployed+=c.tier==='hero'?1:(c.n||1);if(c.type==='troop')k.troopCards++;}}
  /* ---------- 英雄格 ---------- */

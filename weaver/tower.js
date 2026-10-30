@@ -242,7 +242,7 @@ function towerRender(){
  const r=towerRun;let h='';
  if(r&&r.stage==='next'){towerNextStage();return;}
  if(!r){
-  h=`<div class="tw-head"><div><b>征服旅程</b></div><button class="outline" id="twExit">返回</button></div><div class="tw-story has-bg" style="--bg:url(assets/story/camp.webp)"><div class="ts-body"><small class="ts-kicker">織律者</small><h2>你要接回這個世界</h2><div class="ts-lines"><p class="ts-line" style="--i:0">你想把停下的世界接回去。</p><p class="ts-line" style="--i:1">世界聽見了，把失律洩出的八隻律靈借給你。</p><p class="ts-line" style="--i:2">它們就是你的整副牌。先靠它們走出這座橋，各境的旗主之後會一個一個回應你。</p></div><div class="tw-deck">${TOWER_SPIRITS.map(id=>towerCardHTML(id,'')).join('')}</div><p class="tw-sub">六隻守著環上的六條律，蝕與闇是變了質的兩股律。兩隻特定的律靈相鄰部署，會合體成更大的律靈。你有 ${TOWER_LIVES} 次機會，敗北一次少一次。</p><div class="tw-actions"><button class="primary" data-start="go">出發 →</button></div></div></div>`;
+  h=`<div class="tw-head"><div><b>征服旅程</b></div><button class="outline" id="twExit">返回</button></div><div class="tw-story has-bg" style="--bg:url(assets/story/camp.webp)"><div class="ts-body"><small class="ts-kicker">織律者</small><h2>你要接回這個世界</h2><div class="ts-lines"><p class="ts-line" style="--i:0">你想把停下的世界接回去。</p><p class="ts-line" style="--i:1">世界聽見了，把失律洩出的八隻律靈借給你。</p><p class="ts-line" style="--i:2">它們就是你的整副牌。先靠它們走出這座橋，各境的旗主之後會一個一個回應你。</p></div><div class="tw-deck">${TOWER_SPIRITS.map(id=>towerCardHTML(id,'')).join('')}</div><p class="tw-sub">六隻守著環上的六條律，蝕與闇是變了質的兩股律。兩隻特定的律靈近距離先後部署，會融煉成更大的合靈。你有 ${TOWER_LIVES} 次機會，敗北一次少一次。</p><div class="tw-actions"><button class="primary" data-start="go">出發 →</button></div></div></div>`;
  }else if(r.stage==='story'){
   h=towerStoryHTML(r.story.id);
  }else if(r.stage==='map'){

@@ -36,6 +36,12 @@ const SHAPE_BY_CATEGORY={'前排':'sq','防護':'sq','反重甲':'sq','巨獸':'
 const CLASS_BY_CATEGORY={'前排':'shield','防護':'shield','反騎兵':'spear','射手':'bow','投石兵':'bow','騎兵':'rider','突擊':'blade','支援':'cross','治療':'cross','砲兵':'siege','攻城砲兵':'siege','轟擊':'siege','攻城機械':'siege','攻城':'siege','飛行突擊':'wing','軍團增益':'banner','軍團核心':'banner','防禦建築':'tower','產兵建築':'tower','傳送門':'portal','集群':'swarm','獵獸':'blade','法師':'mage','控制法師':'mage','召喚師':'mage','召喚':'mage','詛咒':'mage','控制':'mage','攻城巨獸':'colossus','控制巨獸':'colossus','噴火兵':'flame','陷阱':'trap','區域傷害':'burst','單體傷害':'aim'};
 const EFFECT_GLYPH={bomb:'burst',barrage:'burst',fire:'flame',bolt:'aim',heal:'cross',shield:'shield',armor:'shield',haste:'up',speed:'up',rush:'up',power:'up',frenzy:'flame',sacrifice:'drop',curse:'chain',slow:'chain',root:'chain',summon:'portal',portal:'portal',mine:'trap',resonate:'chain'};
 const glyphSVG=(key,cls='')=>`<svg class="yc-glyph ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CLASS_GLYPH[key]||CLASS_GLYPH.shield}</svg>`;
+/* 兵種職能圖示：GPT 生成的白色剪影（assets/roles/*.png），用 mask 上色，顏色跟著卡框；沒有對應圖示的職能退回上面的幾何形狀 */
+const ROLE_BY_CATEGORY={'前排':'shield','防護':'shield','反重甲':'antiarmor','巨獸':'colossus','反騎兵':'spear','射手':'bow','投石兵':'sling','騎兵':'rider','突擊':'blade','獵獸':'claw','飛行突擊':'wing','支援':'support','治療':'support','軍團增益':'banner','軍團核心':'banner','集群':'swarm','法師':'mage','控制法師':'control','控制':'control','控制巨獸':'colossus','召喚師':'summoner','召喚':'summoner','詛咒':'curse','砲兵':'cannon','攻城砲兵':'cannon','轟擊':'cannon','攻城':'ram','攻城機械':'ram','攻城巨獸':'colossus','噴火兵':'flame','區域傷害':'burst','單體傷害':'aim','防禦建築':'tower','產兵建築':'tower','圖騰':'tower','陷阱':'trap','傳送門':'portal'};
+const ROLE_BY_EFFECT={bomb:'burst',barrage:'cannon',fire:'flame',bolt:'aim',heal:'support',shield:'shield',armor:'shield',haste:'haste',speed:'haste',rush:'haste',power:'haste',frenzy:'flame',sacrifice:'sacrifice',curse:'curse',slow:'curse',root:'curse',summon:'summoner',portal:'portal',mine:'trap',resonate:'summoner'};
+const roleKey=c=>c.type==='tactic'?ROLE_BY_EFFECT[c.effect]:c.type==='building'||c.totem?'tower':ROLE_BY_CATEGORY[c.category];
+const roleIcon=(k,cls='')=>`<span class="yc-glyph yc-role ${cls}" style="--m:url(assets/roles/${k}.png)" aria-hidden="true"></span>`;
+const badgeGlyph=c=>{const k=roleKey(c);return k?roleIcon(k):glyphSVG(classGlyphKey(c));};
 const classGlyphKey=c=>c.type==='tactic'?(EFFECT_GLYPH[c.effect]||'burst'):c.type==='building'||c.totem?'tower':(SHAPE_BY_CATEGORY[c.category]||'sq');
 
 /* 直式卡面：名稱條＋費用、插圖（右下兵種圖示、左下旗徽）、數值條。框色：普通=古銅、菁英=銀藍、英雄=金、戰術=紫。手牌、爬塔獎勵共用。 */
@@ -45,8 +51,8 @@ function cardFace(c,o={}){
   :c.totem?`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-dur" title="持續時間">${c.duration}<i>秒</i></span>`
   :`<span class="st-atk" title="攻擊">${c.dmg||0}</span><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span>`;
  const art=String(icon(c)).replace('<svg class="unit-art"','<svg preserveAspectRatio="xMidYMid slice" class="unit-art"');
- const kw=[c.charge?['衝鋒','rider']:null].filter(Boolean).map(([t,k])=>`<span class="yc-kw" title="${t}">${glyphSVG(k)}</span>`).join('');
- return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''}" style="--f:${f[2]}"><div class="yc-top"><strong>${c.tier==='hero'?c.name.split('・')[0]:c.name}</strong><span class="yc-cost">${c.cost}</span></div><div class="yc-art">${art}<span class="yc-crest">${SixPresentation.crest(c.faction)}</span>${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}<span class="yc-badges">${kw}<span class="yc-class" title="${c.category||effects[c.effect]||''}">${glyphSVG(classGlyphKey(c))}</span></span></div><div class="yc-stats">${stats}</div></div>`;
+ const kw=[c.charge?['衝鋒','rider']:null].filter(Boolean).map(([t,k])=>`<span class="yc-kw" title="${t}">${k==='rider'?roleIcon('rider'):glyphSVG(k)}</span>`).join('');
+ return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''}" style="--f:${f[2]}"><div class="yc-top"><strong>${c.tier==='hero'?c.name.split('・')[0]:c.name}</strong><span class="yc-cost">${c.cost}</span></div><div class="yc-art">${art}<span class="yc-crest">${SixPresentation.crest(c.faction)}</span>${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}<span class="yc-badges">${kw}<span class="yc-class" title="${c.category||effects[c.effect]||''}">${badgeGlyph(c)}</span></span></div><div class="yc-stats">${stats}</div></div>`;
 }
 
 /* 長按手牌（或右鍵）開啟完整卡牌；不影響一般點選 */

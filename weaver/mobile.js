@@ -9,7 +9,7 @@
  const toField=(e,touch)=>{const r=cv.getBoundingClientRect(),y=e.clientY-(touch?44:0);return{x:(e.clientX-r.left)/r.width*600,y:(y-r.top)/r.height*700,over:e.clientX>=r.left&&e.clientX<=r.right&&y>=r.top&&y<=r.bottom};};
  const end=()=>{if(ghost)ghost.remove();ghost=null;drag=null;mouse=null;};
  hand.addEventListener('pointerdown',e=>{
-  const b=e.target.closest('.handcard');if(!b||mode!=='playing'||battle.auto[0]||swapMode)return;
+  const b=e.target.closest('.handcard');if(!b||mode!=='playing'||battle.auto[0])return;
   drag={slot:+b.dataset.slot,x:e.clientX,y:e.clientY,id:e.pointerId,on:false,touch:e.pointerType!=='mouse'};
  });
  hand.addEventListener('pointermove',e=>{

@@ -44,13 +44,6 @@
 body:not(.in-battle) .control{display:none!important}
 
 /* 換牌按鈕 */
-#swapBtn{margin-left:auto;padding:6px 12px;font:600 13px system-ui;color:#e9e3cc;background:#26301f;border:1px solid #7b8559;border-radius:6px;cursor:pointer;white-space:nowrap}
-#swapBtn b{color:var(--gold);font-weight:600}
-#swapBtn:disabled{opacity:.45;cursor:default}
-#swapBtn.active{background:#4a5a2a;border-color:var(--gold);box-shadow:0 0 10px #d7b77855}
-body.swap-mode .handcard{animation:swapPulse 1s ease-in-out infinite alternate}
-@keyframes swapPulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
-@media(max-width:1099px){body.in-battle #swapBtn{padding:5px 10px;font-size:12px}}
 
 #modalHint:empty{display:none}
 
@@ -123,8 +116,14 @@ body:not(.in-battle) #battleView:not([hidden]) #overlay .seal{display:none}
 
 /* 英雄格與寶物：和能量數字、換牌同一列（沒有充能條） */
 .resource #fieldBar{position:static!important;order:2;flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:4px;align-items:flex-start;justify-content:center;margin:0;padding:0}
-.resource #swapBtn{order:3}
-.resource .energytrack,.resource #regen,.resource>span{display:none!important}
+.resource #regen,.resource>span{display:none!important}
+/* 充能條：資源列底下一整條，英雄技能扣點時會看到它掉下去 */
+.resource{flex-wrap:wrap}
+.resource .energytrack{order:9;flex:0 0 100%;height:9px;margin-top:3px;border-radius:2px;overflow:hidden}
+#energyFill{transition:width .3s ease-out}
+.energytrack.pay{animation:payBar .6s ease-out}
+@keyframes payBar{0%{box-shadow:0 0 0 2px #ff7a6a,0 0 10px #ff7a6a99}100%{box-shadow:0 0 0 0 #ff7a6a00}}
+.resource #fieldBar{justify-content:flex-end}
 #fieldBar:empty{display:none!important}
 #fieldBar .fb-chip{flex-direction:column;width:46px;gap:1px;padding:2px 0;background:none;border:0;align-items:center}
 #fieldBar .fb-face{width:36px;height:36px;flex:none}
@@ -258,3 +257,30 @@ body.cup-open{overflow:hidden}
 .cp-slot.poss{border-color:#8e6fd0;animation:cpPoss 1.4s ease-in-out infinite}
 @keyframes cpPoss{0%,100%{box-shadow:0 0 0 0 #8e6fd000}50%{box-shadow:0 0 12px 2px #8e6fd0aa}}
 .cp-omen{color:#b79af0!important;font-size:12.5px;letter-spacing:.08em}
+
+/* 盃賽對決畫面 */
+#vsScreen{position:fixed;inset:0;z-index:80;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0;padding:max(18px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));color:#ece6d2;background:radial-gradient(ellipse at 50% 50%,#26201a 0,#0b0e0b 72%);overflow:hidden;cursor:pointer;animation:vsIn .2s ease-out}
+#vsScreen::before{content:"";position:absolute;inset:-20%;background:linear-gradient(100deg,#d7b77822 0 46%,transparent 46% 54%,color-mix(in srgb,var(--ec) 30%,transparent) 54%);pointer-events:none}
+#vsScreen.out{opacity:0;transition:opacity .2s}
+.vs-round{position:absolute;top:max(16px,env(safe-area-inset-top));left:0;right:0;text-align:center;font:600 14px 'Songti TC',Georgia,serif;letter-spacing:.4em;color:#d7b778}
+.vs-side{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.vs-me{animation:vsLeft .5s cubic-bezier(.2,.9,.3,1) both}.vs-foe{animation:vsRight .5s cubic-bezier(.2,.9,.3,1) both}
+.vs-face{display:block;width:min(35vw,230px);aspect-ratio:3/4;border:2px solid #d7b778;border-radius:6px;overflow:hidden;background:#101510;box-shadow:0 0 28px #d7b77833}
+.vs-foe .vs-face{border-color:var(--ec);box-shadow:0 0 28px color-mix(in srgb,var(--ec) 40%,transparent)}
+.vs-face svg{width:100%;height:100%;display:block}
+.vs-side b{font:700 clamp(22px,7vw,40px) 'Songti TC',Georgia,serif;letter-spacing:.12em;color:#f2e6bd;text-shadow:0 2px 10px #000}
+.vs-foe b{color:#fff}
+.vs-side b i{display:inline-block;margin-left:8px;padding:1px 8px;font:600 12px system-ui;font-style:normal;letter-spacing:.1em;color:#d9b6ff;border:1px solid #8e3fd0;border-radius:4px;vertical-align:middle}
+.vs-side small{font:600 clamp(13px,3.6vw,17px) system-ui;color:#d7b778;letter-spacing:.08em}
+.vs-foe small{color:color-mix(in srgb,var(--ec) 70%,#fff)}
+.vs-side em{font:normal 12px/1.4 system-ui;color:#a9ad9a;max-width:34vw}
+.vs-mark{position:relative;z-index:2;font:900 clamp(44px,16vw,96px) 'Cinzel','Songti TC',Georgia,serif;font-style:italic;background:linear-gradient(#ffe8a0,#d7a53a 55%,#b0392a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 12px #000);padding:0 6px;animation:vsPop .55s .35s cubic-bezier(.2,1.6,.4,1) both}
+.vs-skip{position:absolute;bottom:max(14px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font:12px system-ui;letter-spacing:.3em;color:#7d8271;animation:vsBlink 1.2s 1s infinite alternate}
+#vsScreen.poss::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,#8e3fd01a 0 2px,transparent 2px 6px);pointer-events:none;mix-blend-mode:screen}
+@keyframes vsIn{from{opacity:0}to{opacity:1}}
+@keyframes vsLeft{from{transform:translateX(-60vw);opacity:0}to{transform:none;opacity:1}}
+@keyframes vsRight{from{transform:translateX(60vw);opacity:0}to{transform:none;opacity:1}}
+@keyframes vsPop{from{transform:scale(3);opacity:0}to{transform:none;opacity:1}}
+@keyframes vsBlink{from{opacity:.3}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#vsScreen,.vs-me,.vs-foe,.vs-mark,.vs-skip{animation:none!important}}
+

@@ -90,7 +90,7 @@ function drawBattleEffects(){for(const f of battle.fx){const a=Math.max(0,f.life
  else{ctx.lineWidth=1.4;circle(f.x,f.y,f.r*age+2,f.type==='heal'?'#b9dca3':teamColor(f.team));if(f.type==='heal'){line(f.x-4,f.y-17,f.x+4,f.y-17,'#d5f1b8',2);line(f.x,f.y-21,f.x,f.y-13,'#d5f1b8',2);}if(f.type==='cast'&&f.label){if(f.big){ctx.font='bold '+Math.round(16*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(f.label,f.x,f.y-34-age*22);ctx.fillStyle='#ffe29a';ctx.fillText(f.label,f.x,f.y-34-age*22);}else{ctx.font=Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#f4e2b5';ctx.fillText(f.label,f.x,f.y-25-age*15);}}}
  ctx.restore();}}
 
-/* 合體提示：選著「逆反共振」時，場上每一對可合體的己方律靈之間連線，並標出要點擊的位置 */
+/* 融煉提示：選著「逆反共振」時，場上每一對可融煉的己方律靈之間連線，並標出要點擊的位置 */
 function drawFuseHints(){
  if(!battle||!battle.players||selected<0||mode!=='playing')return;
  const id=battle.players[0].hand[selected];if(!id||SixEngine.CARDS[id].effect!=='resonate')return;

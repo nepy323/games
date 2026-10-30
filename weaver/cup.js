@@ -86,8 +86,32 @@
 
  /* ---------- 對戰 ---------- */
  let active=false;
+ /* 對決畫面：按下開始後先演一段「你 VS 對手」，各自標出牌組與風格；點一下可略過 */
+ let vsBusy=false;
+ const STYLE_NOTE={aggressive:'激進',steady:'沉穩',conservative:'保守'};
+ function mySummary(){
+  const top=bannerSummary(deck).sort((a,b)=>b.n-a.n).slice(0,2).map(o=>o.fac[0]+' '+o.n).join('・');
+  const hero=heroSlot&&CARDS[heroSlot]?CARDS[heroSlot].name.split('・')[0]:'';
+  return {deck:top||'自由編成',style:hero?'英雄：'+hero:'無英雄'};
+ }
+ function showVS(rr,pos,enemy,done){
+  if(vsBusy)return;vsBusy=true;
+  const me=mySummary(),root=document.createElement('div');root.id='vsScreen';root.style.setProperty('--ec',rr.color);if(pos)root.classList.add('poss');
+  root.innerHTML=`<div class="vs-round">盃賽 · ${ROUNDS[run.rounds.length]}</div>
+   <div class="vs-side vs-me"><span class="vs-face">${artSVG('story_player','portrait')}</span><b>你</b><small>${me.deck}</small><em>${me.style}</em></div>
+   <div class="vs-mark">VS</div>
+   <div class="vs-side vs-foe"><span class="vs-face">${artSVG(rr.art,'portrait')}</span><b>${rr.name}${pos?'<i>降靈</i>':''}</b><small>${enemy[0]}</small><em>${rr.label}　${rr.note}</em></div>
+   <p class="vs-skip">點一下開始</p>`;
+  document.body.appendChild(root);try{beep(150,.25);}catch{}
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let fin=false;const go=()=>{if(fin)return;fin=true;root.classList.add('out');setTimeout(()=>{root.remove();vsBusy=false;done();},reduce?0:220);};
+  root.onclick=go;setTimeout(go,reduce?1200:2800);
+ }
  function startMatch(){
   const o=myOpponent(),rr=rv(o),pos=run.poss&&run.poss.includes(o),enemy=rivalPreset(pos?ghost():rr);
+  showVS(rr,pos,enemy,()=>beginMatch(rr,pos,enemy));
+ }
+ function beginMatch(rr,pos,enemy){
   close();active=true;
   battle=new Battle(deck,enemy[2],Date.now(),{aiStyles:['steady',pos?'aggressive':rr.style],shuffle:true,heroes:[[heroSlot],enemy[3]||[]],items:true});
   if(pos&&ghost().mods)battle.teamMods[1]=ghost().mods;else if(rr.mods)battle.teamMods[1]=rr.mods;
