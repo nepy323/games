@@ -100,5 +100,5 @@ function drawFuseHints(){
  for(const [x,y] of [[r.ax,r.ay],[r.bx,r.by]]){ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.stroke();}
  ctx.beginPath();ctx.arc(r.x,r.y,SixEngine.CARDS[id].radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
  ctx.beginPath();ctx.arc(r.x,r.y,10,0,Math.PI*2);ctx.fillStyle='#ffe29a';ctx.fill();ctx.globalAlpha=1;
- ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText('獻祭這兩組',r.x,r.y-18);ctx.fillStyle='#ffe29a';ctx.fillText('獻祭這兩組',r.x,r.y-18);ctx.restore();
+ ctx.font='bold '+Math.round(12*viewScale())+'px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0b0f0bdd';ctx.strokeText(r.n>1?'可獻祭這兩組':'可獻祭這組',r.x,r.y-18);ctx.fillStyle='#ffe29a';ctx.fillText(r.n>1?'可獻祭這兩組':'可獻祭這組',r.x,r.y-18);ctx.restore();
 }

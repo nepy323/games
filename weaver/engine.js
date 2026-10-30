@@ -7,7 +7,7 @@ const summons={fuse_fallen:{artId:'fuse_fallen',size:2,ring:true,kin:'暗蝕',ti
 /* 旗印：牌組中同旗卡牌達 2 / 4 / 6 張，依序解鎖三檔加成（各旗主題不同，數值為草案） */
 const SWAP_COST=1,SWAP_COOLDOWN=3;
 /* 律靈合體：兩組指定的律靈在 FUSE_WINDOW 秒內、距離 FUSE_RANGE 以內先後部署，兩組消失，換成一隻大律靈（免費）。配方是資料，之後其他單位也能加。 */
-const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.9,FUSE_BURST_WEAK=.75,FUSE_FULL_HP=1.5,FUSE_FULL_BURST=2; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.9、衝擊 ×0.75、共享冷卻；悖靈（逆共振）生命 ×1.5、登場衝擊 ×2：慢但能救場 */
+const FUSE_WINDOW=6,FUSE_RANGE=80,FUSE_COOLDOWN=6,FUSE_AUTO=true,FUSE_WEAK=.75,FUSE_BURST_WEAK=.5,OMEN_BASE=.85,OMEN_MULT=[1,1.1,1.2],OMEN_PURE=6,OMEN_TTL=12,STASIS_SLOW=.01; /* 常規合靈：配對的兩組近距離先後部署就合體，本體 ×0.75、衝擊 ×0.5、共享冷卻；悖靈（逆共振）基準 ×0.85，吃 0／1／2 組再乘 1／1.1／1.2（界律精編對盃賽對手約 58%，更高就是 imba） */
 const FUSIONS=[
  {a:'n_rock',b:'n_dew',into:'fuse_earth',burst:{dmg:240,r:100,slow:2}},{a:'n_fire',b:'n_wind',into:'fuse_storm',burst:{dmg:320,r:110}},
  {a:'n_frost',b:'n_light',into:'fuse_aurora',burst:{dmg:140,r:110,slow:3}},
@@ -93,7 +93,6 @@ class Battle{
   if(x<25||x>575||y<22||y>678)return '請點擊戰場內';
   const home=(c.type!=='tactic'&&!c.anywhere)||c.homeOnly||c.effect==='mine';
   if(home&&(team===0?y<382:y>318))return '此卡只能部署於己方半場';
-  if(c.effect==='resonate'&&this.resonanceGroups(team,x,y,c.radius).length<2)return '範圍內沒有兩組可獻祭的律靈';
   if((c.type!=='tactic'||c.effect==='portal')&&this.all().some(t=>(t.tower||t.type==='building')&&dist(t,{x,y})<t.r+19))return '請避開現有建築';
   return '';
  }
@@ -120,8 +119,8 @@ class Battle{
   for(const u of all){u.dead=true;u.hp=0;}this.units=this.units.filter(u=>!u.dead);
   g.fused=other.fused=true;if(!full)this.fuseReadyAt[g.team]=this.clock+FUSE_COOLDOWN;this.counters[g.team].fusions++;
   this.spawn(summons[rec.into],g.team,x,y,1,{derived:true});
-  const nu=this.units.at(-1);if(nu&&full){nu.hp*=FUSE_FULL_HP;nu.max*=FUSE_FULL_HP;}if(nu&&!full){nu.hp*=FUSE_WEAK;nu.max*=FUSE_WEAK;nu.dmg*=FUSE_WEAK;nu.name=nu.kin+'合靈';nu.ring=false;nu.size=(nu.size||1)*.8;}
-  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*(full?FUSE_FULL_BURST:FUSE_BURST_WEAK),true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
+  const nu=this.units.at(-1);if(nu&&!full){nu.hp*=FUSE_WEAK;nu.max*=FUSE_WEAK;nu.dmg*=FUSE_WEAK;nu.name=nu.kin+'合靈';nu.ring=false;nu.size=(nu.size||1)*.8;}
+  if(rec.burst){/* 合體當下的衝擊波：像一張免費的解場戰術 */for(const u of this.all().filter(v=>v.team!==g.team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team:g.team},u,rec.burst.dmg*FUSE_BURST_WEAK,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,g.team,rec.burst.r);}
   const nm=this.units.at(-1)?.name||summons[rec.into].name;
   if(full){this.effect('omen',x,y,g.team,150,{life:1.3,max:1.3});this.effect('cast',x,y,g.team,90,{label:'裏律降臨：'+nm,big:true});}else this.effect('cast',x,y,g.team,70,{label:'合體：'+nm});
   this.log((g.team?'敵方':'我方')+(full?'逆反共振，裏律降臨：':'律靈合體：')+nm);this.notice.push({team:g.team,text:(full?'裏律降臨：':'合體：')+nm,kind:'fuse'});
@@ -135,19 +134,37 @@ class Battle{
    const us=this.groupUnits(g);if(!us.length)continue;const d=Math.min(...us.map(u=>dist(u,{x,y})));if(d<=r)out.push({g,d});}
   return out.sort((p,q)=>p.d-q.d).map(o=>o.g);
  }
- /* 場上最靠近的兩組可共振律靈（不看施放點）：回傳兩組的中點，AI 與提示用 */
+ /* 場上最靠近的兩組可共振律靈（不看施放點）；只有一組時回傳那一組（n:1）；一組都沒有回傳 null。AI 與提示用 */
  anyResonance(team){
   const ids=this.spiritIds(),gs=this.groups.filter(g=>!g.fused&&g.team===team&&ids.has(g.cardId)&&this.groupUnits(g).length);
   const pos=g=>{const us=this.groupUnits(g);return {x:us.reduce((s,u)=>s+u.x,0)/us.length,y:us.reduce((s,u)=>s+u.y,0)/us.length};};
   let best=null;
-  for(let i=0;i<gs.length;i++)for(let k=i+1;k<gs.length;k++){const a=pos(gs[i]),b=pos(gs[k]),d=Math.hypot(a.x-b.x,a.y-b.y);if(d<=300&&(!best||d<best.d))best={d,x:(a.x+b.x)/2,y:(a.y+b.y)/2,ax:a.x,ay:a.y,bx:b.x,by:b.y};}
+  for(let i=0;i<gs.length;i++)for(let k=i+1;k<gs.length;k++){const a=pos(gs[i]),b=pos(gs[k]),d=Math.hypot(a.x-b.x,a.y-b.y);if(d<=300&&(!best||d<best.d))best={d,n:2,x:(a.x+b.x)/2,y:(a.y+b.y)/2,ax:a.x,ay:a.y,bx:b.x,by:b.y};}
+  if(!best&&gs.length){const a=pos(gs[0]);best={d:0,n:1,x:a.x,y:a.y,ax:a.x,ay:a.y,bx:a.x,by:a.y};}
   return best;
  }
- /* 儀式完成：吃掉施放點範圍內最近的兩組，隨機生出一隻原數值的合靈；不足兩組就失效並退費 */
+ /* 牌組有 6 張以上律靈系卡牌＝純牌（第三級旗印）；混牌打逆共振是禁忌法術，悖靈只能撐 OMEN_TTL 秒 */
+ pureSpirit(team){return this.players[team].deck.filter(id=>CARDS[id]&&CARDS[id].faction===6).length>=OMEN_PURE;}
+ /* 儀式完成：吃掉施放點範圍內最近的 0～2 組己方律靈，召出悖靈。吃得越多越強（1／1.1／1.2 倍）；吃的是哪些律靈會影響悖靈的種類 */
  resolveResonance(f){
-  const gs=this.resonanceGroups(f.team,f.x,f.y,f.c.radius),pool=FUSIONS.filter(r=>this.canRecipe(f.team,r));
-  if(gs.length<2||!pool.length){const p=this.players[f.team];p.energy=Math.min(p.maxEnergy||10,p.energy+f.c.cost);this.effect('cast',f.x,f.y,f.team,60,{label:'逆共振失效'});return;}
-  this.doFuse(gs[0],gs[1],pool[Math.floor(this.random()*pool.length)],true);
+  const gs=this.resonanceGroups(f.team,f.x,f.y,f.c.radius).slice(0,2),pool=FUSIONS.filter(r=>this.canRecipe(f.team,r));
+  if(!pool.length)return;
+  const n=Math.floor(this.random()*(gs.length+1)),eaten=gs.slice(0,n);
+  let cand=pool;
+  if(eaten.length){const ids=eaten.map(g=>g.cardId),m=pool.filter(r=>ids.includes(r.a)||ids.includes(r.b));if(m.length)cand=m;}
+  const rec=cand[Math.floor(this.random()*cand.length)],all=eaten.flatMap(g=>this.groupUnits(g));
+  const x=all.length?all.reduce((s,u)=>s+u.x,0)/all.length:f.x,y=all.length?all.reduce((s,u)=>s+u.y,0)/all.length:f.y;
+  for(const u of all){u.dead=true;u.hp=0;}this.units=this.units.filter(u=>!u.dead);eaten.forEach(g=>{g.fused=true;});
+  this.summonOmen(f.team,x,y,rec,OMEN_MULT[eaten.length]);
+ }
+ summonOmen(team,x,y,rec,mult){
+  this.counters[team].fusions++;
+  this.spawn(summons[rec.into],team,x,y,1,{derived:true});
+  const nu=this.units.at(-1);if(nu){nu.hp*=OMEN_BASE*mult;nu.max*=OMEN_BASE*mult;nu.dmg*=OMEN_BASE*mult;if(!this.pureSpirit(team))nu.ttl=OMEN_TTL;}
+  if(rec.burst){for(const u of this.all().filter(v=>v.team!==team&&!v.tower&&v.type!=='building'&&dist(v,{x,y})<=rec.burst.r+v.r)){this.hit({team},u,rec.burst.dmg*OMEN_BASE*mult,true);if(rec.burst.slow)this.buff(u,'slow',rec.burst.slow);}this.effect('blast',x,y,team,rec.burst.r);}
+  const nm=nu?.name||summons[rec.into].name;
+  this.effect('omen',x,y,team,150,{life:1.3,max:1.3});this.effect('cast',x,y,team,90,{label:'裏律降臨：'+nm,big:true});
+  this.log((team?'敵方':'我方')+'逆反共振，裏律降臨：'+nm);this.notice.push({team,text:'裏律降臨：'+nm,kind:'fuse'});
  }
  /* 每 0.5 秒重新檢查窗口內的律靈（冷卻結束後仍相鄰就會合體） */
  fuseSweep(){if(FUSE_AUTO)for(const g of this.groups)if(!g.fused&&this.clock-g.t<=FUSE_WINDOW)this.tryFuse(g);this.groups=this.groups.filter(g=>!g.fused&&this.groupUnits(g).length>0);}
@@ -278,7 +295,7 @@ class Battle{
  buff(u,key,duration){if((key==='slow'||key==='root')&&!u.tower&&u.type!=='building'&&this.counters&&!this.has(u,key))this.counters[1-u.team].controls++;u.buffs[key]=Math.max(u.buffs[key]||0,this.clock+duration);}
  has(u,key){return (u.buffs[key]||0)>this.clock;}
  cast(c,team,x,y){
-  if(c.effect==='resonate'){this.effect('cast',x,y,team,c.radius,{label:'逆反共振'});this.fields.push({c,team,x,y,age:0,tick:0,duration:1});return;}
+  if(c.effect==='resonate'){this.effect('cast',x,y,team,c.radius,{label:'逆反共振'});this.effect('omen',x,y,team,c.radius,{life:1,max:1});this.fields.push({c,team,x,y,age:0,tick:0,duration:1});return;}
   this.effect('cast',x,y,team,c.radius,{label:c.name});
   if(c.effect==='portal'){this.spawn({name:c.name,artId:'x_portal',type:'building',hp:800,dmg:0,range:0,speed:0,rate:1,duration:12,portal:true,portalWave:0,portalAt:this.clock,role:'門',faction:4},team,x,y);this.portalStep(this.units.at(-1));return;}
   if(['bomb','summon'].includes(c.effect)){this.fields.push({c,team,x,y,age:0,tick:0,duration:c.delay||1});return;}
@@ -314,7 +331,7 @@ class Battle{
  fieldsStep(dt){
   for(const f of this.fields){
    const c=f.c;f.age+=dt;f.tick-=dt;
-   if(c.effect==='resonate'){if(f.age<f.duration)continue;this.resolveResonance(f);f.done=true;continue;}
+   if(c.effect==='resonate'){for(const u of this.units)if(u.hp>0&&!u.tower&&u.type!=='building'&&dist(u,f)<=c.radius+u.r)u.buffs.stasis=this.clock+.2;if(f.age<f.duration)continue;this.resolveResonance(f);f.done=true;continue;}
    if(['bomb','summon'].includes(c.effect)){
     if(f.age<f.duration)continue;
     if(c.effect==='summon')this.summon(c.summon,f.team,f.x,f.y,c.count);
@@ -447,7 +464,7 @@ class Battle{
    else {tx=bridge;ty=a.y>350?318:382;}
   }
   const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy);if(d<1)return;
-  let speed=a.speed*(this.has(a,'slow')?.45:1)*Math.max(this.has(a,'speed')?1.5:1,this.has(a,'rush')?1.75:1,this.has(a,'march')?1.2:1);
+  let speed=a.speed*(this.has(a,'stasis')?STASIS_SLOW:1)*(this.has(a,'slow')?.45:1)*Math.max(this.has(a,'speed')?1.5:1,this.has(a,'rush')?1.75:1,this.has(a,'march')?1.2:1);
   let move=Math.min(speed*dt,d);
   /* 橋上排隊：前方有明顯比自己重（1.3 倍以上）的地面單位擋著，就停下來；大型單位能當塞子（飛行單位不受影響） */
   if(!a.flying&&this.onBridge(a)){const nx=a.x+dx/d*move,ny=a.y+dy/d*move,ma=this.mass(a);
@@ -559,5 +576,5 @@ class Battle{
   }
  }
 }
-const api={Battle,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,FUSE_FULL_HP,FUSE_FULL_BURST,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
+const api={Battle,FUSE_COOLDOWN,FUSE_WEAK,FUSE_BURST_WEAK,OMEN_BASE,OMEN_MULT,SKILLS,SKILL_COST,ENERGY_FLOOR,CARDS,summons,FUSIONS,FUSE_WINDOW,FUSE_RANGE,SWAP_COST,SWAP_COOLDOWN,HEROES,ITEMS,HERO_SUMMON_EXTRA,HERO_RESPAWN,ITEM_FIRST,ITEM_EVERY,ITEM_MAX,BANNERS,BANNER_NEED,bannerCount,bannerLevels,bannerMods};if(typeof module!=='undefined')module.exports=api;else root.SixEngine=api;
 })(globalThis);
