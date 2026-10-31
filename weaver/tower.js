@@ -177,7 +177,7 @@ const towerTab=document.createElement('button');towerTab.id='towerTab';towerTab.
 function towerHidePanel(){towerPanel.hidden=true;document.body.classList.remove('tower-open');}
 function towerShowPanel(){if(mode==='playing')pause();towerPanel.hidden=false;document.body.classList.add('tower-open');towerRender();}
 const relicById=id=>RELICS.find(r=>r.id===id),upById=id=>HERO_UPS.find(u=>u.id===id);
-function towerCardHTML(id,attrs){const c=CARDS[id];return `<button class="tw-card" ${attrs} title="${c.rules}">${cardFace(c)}<em>${c.rules}</em></button>`;}
+function towerCardHTML(id,attrs){const c=CARDS[id];return `<button class="tw-card" ${attrs} title="${SixPresentation.rulesText(c)}">${cardFace(c)}<em>${SixPresentation.rulesText(c)}</em></button>`;}
 function towerRelicHTML(r,attrs=''){return `<button class="tw-relic ${r.rarity}" ${attrs}>${relicIcon(r,56)}<strong>${r.name}</strong><em>${r.desc}</em></button>`;}
 function towerUpHTML(u,attrs=''){return `<button class="tw-relic rare" ${attrs}>${relicIcon({rarity:'rare',frame:'hex',glyph:u.glyph,tint:u.tint,src:u.src},56)}<strong>${u.name}${towerRun.ups[u.id]?' <small>→ Lv.'+(towerRun.ups[u.id]+1)+'</small>':''}</strong><em>${u.desc}</em></button>`;}
 function towerFlagSrc(){return 'assets/emblems/badge-6.webp';}

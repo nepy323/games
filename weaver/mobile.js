@@ -71,7 +71,7 @@
 (()=>{if(!('serviceWorker'in navigator)||!location.protocol.startsWith('http')||location.hostname==='localhost'||location.hostname==='127.0.0.1')return;
  const c=navigator.connection;if(c&&c.saveData)return;
  const run=async()=>{try{await navigator.serviceWorker.ready;const list=await (await fetch('assets-list.json',{cache:'no-cache'})).json();
-  const ca=await caches.open('assets-v1');let i=0;const todo=[];for(const u of list)if(!(await ca.match(u)))todo.push(u);
+  const ca=await caches.open('assets-v2');let i=0;const todo=[];for(const u of list)if(!(await ca.match(u)))todo.push(u);
   const worker=async()=>{while(i<todo.length){const u=todo[i++];try{await fetch(u);}catch{await new Promise(r=>setTimeout(r,2000));}}};
   await Promise.all([worker(),worker(),worker()]);}catch{}};
  setTimeout(()=>{('requestIdleCallback'in window?requestIdleCallback:fn=>setTimeout(fn,3000))(run);},6000);

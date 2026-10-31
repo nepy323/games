@@ -1,6 +1,6 @@
 /* Service worker：圖片等素材存在手機上（捷運沒訊號也能開）；頁面與程式永遠先抓最新版，抓不到才用存起來的。
    換版本時改 VERSION，舊快取會被清掉。 */
-const VERSION='v1',ASSET='assets-'+VERSION,CORE='core-'+VERSION;
+const VERSION='v2',ASSET='assets-'+VERSION,CORE='core-'+VERSION;
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
  for(const k of await caches.keys())if(k!==ASSET&&k!==CORE)await caches.delete(k);

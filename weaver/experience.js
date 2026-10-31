@@ -15,7 +15,7 @@ function showEmblem(c){emblem.hidden=false;emblem.className='emblem reel found';
  emblem.innerHTML='<div class="reel-window"><div class="reel-item" style="--ec:'+c.color+'">'+portrait(c)+'</div></div><small>'+c.name+' · '+c.label+'</small><div class="match-word">MATCH!</div>';
  document.body.classList.remove('match-shake');void document.body.offsetWidth;if(!reducedMotion)document.body.classList.add('match-shake');}
 function hideEmblem(){emblem.hidden=true;emblem.innerHTML='';document.body.classList.remove('match-shake');}
-function cancelMatch(){hideEmblem();matchToken++;matchTimers.forEach(clearTimeout);matchTimers=[];document.body.classList.remove('match-search');if(mode==='matching'){mode='ready';$('start').disabled=false;$('start').textContent='尋找對戰 →';$('modalHint').textContent='';$('opponentCard').innerHTML='<strong>尚未配對</strong><small>尋找對手，展開雙路交鋒</small>';$('modalTitle').textContent='配對已取消';$('modalText').textContent='調整編制，準備下一場戰鬥。';}}
+function cancelMatch(){hideEmblem();matchToken++;matchTimers.forEach(clearTimeout);matchTimers=[];document.body.classList.remove('match-search');if(mode==='matching'){mode='ready';$('start').disabled=false;$('start').textContent='尋找對戰 →';$('modalHint').textContent='';$('opponentCard').innerHTML='<strong>尚未配對</strong>';$('modalTitle').textContent='配對已取消';$('modalText').textContent='調整編制，準備下一場戰鬥。';}}
 function startTowerBattle(){
  const T=towerCtx,choice=T.commander;
  battle=new Battle(deck,T.node.enemy,Date.now(),{aiStyles:['steady',choice.style],shuffle:true,heroes:[towerBattleHeroes(),T.node.enemyHeroes||[]],heroLimit:2});towerApplyMods(battle);

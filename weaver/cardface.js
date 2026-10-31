@@ -37,13 +37,13 @@ const CLASS_BY_CATEGORY={'前排':'shield','防護':'shield','反騎兵':'spear'
 const EFFECT_GLYPH={bomb:'burst',barrage:'burst',fire:'flame',bolt:'aim',heal:'cross',shield:'shield',armor:'shield',haste:'up',speed:'up',rush:'up',power:'up',frenzy:'flame',sacrifice:'drop',curse:'chain',slow:'chain',root:'chain',summon:'portal',portal:'portal',mine:'trap',resonate:'chain'};
 const glyphSVG=(key,cls='')=>`<svg class="yc-glyph ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CLASS_GLYPH[key]||CLASS_GLYPH.shield}</svg>`;
 /* 兵種職能圖示：GPT 生成的白色剪影（assets/roles/*.png），用 mask 上色，顏色跟著卡框；沒有對應圖示的職能退回上面的幾何形狀 */
-const ROLE_BY_CATEGORY={'前排':'shield','防護':'shield','反重甲':'antiarmor','巨獸':'colossus','反騎兵':'spear','射手':'bow','投石兵':'sling','騎兵':'rider','突擊':'blade','獵獸':'claw','飛行突擊':'wing','支援':'support','治療':'support','軍團增益':'banner','軍團核心':'banner','集群':'swarm','法師':'mage','控制法師':'control','控制':'control','控制巨獸':'colossus','召喚師':'summoner','召喚':'summoner','詛咒':'curse','砲兵':'cannon','攻城砲兵':'cannon','轟擊':'cannon','攻城':'ram','攻城機械':'ram','攻城巨獸':'colossus','噴火兵':'flame','區域傷害':'burst','單體傷害':'aim','防禦建築':'tower','產兵建築':'tower','圖騰':'tower','陷阱':'trap','傳送門':'portal','遠程指揮':'banner','吸血輔助':'support','治療輔助':'support','攻城砲手':'cannon','護印英魂':'shield'};
+const ROLE_BY_CATEGORY={'前排':'shield','防護':'shield','反重甲':'antiarmor','巨獸':'colossus','反騎兵':'spear','射手':'bow','投石兵':'sling','騎兵':'rider','突擊':'blade','獵獸':'claw','飛行突擊':'wing','支援':'support','治療':'support','軍團增益':'banner','軍團核心':'banner','集群':'swarm','法師':'mage','控制法師':'control','控制':'control','控制巨獸':'colossus','召喚師':'summoner','召喚':'summoner','詛咒':'curse','砲兵':'cannon','攻城砲兵':'cannon','轟擊':'cannon','攻城':'ram','攻城機械':'ram','攻城巨獸':'colossus','噴火兵':'flame','區域傷害':'burst','單體傷害':'aim','防禦建築':'tower','產兵建築':'tower','圖騰':'tower','定點法術':'tower','陷阱':'trap','傳送門':'portal','遠程指揮':'banner','吸血輔助':'support','治療輔助':'support','攻城砲手':'cannon','護印英魂':'shield'};
 const ROLE_BY_EFFECT={bomb:'burst',barrage:'cannon',fire:'flame',bolt:'aim',heal:'support',shield:'shield',armor:'shield',haste:'haste',speed:'haste',rush:'haste',power:'haste',frenzy:'flame',sacrifice:'sacrifice',curse:'curse',slow:'curse',root:'curse',summon:'summoner',portal:'portal',mine:'trap',resonate:'summoner'};
 const roleKey=c=>c.type==='tactic'?(c.kindLabel==='護印英魂'?'shield':ROLE_BY_EFFECT[c.effect]):c.type==='building'||c.totem?'tower':ROLE_BY_CATEGORY[c.category];
 const roleIcon=(k,cls='')=>`<span class="yc-glyph yc-role ${cls}" style="--m:url(assets/roles/${k}.png)" aria-hidden="true"></span>`;
 const badgeGlyph=c=>{const k=roleKey(c);return k?roleIcon(k):glyphSVG(classGlyphKey(c));};
 /* 戰術分三類：援軍（叫出會打的生物）、法術（直接對範圍造成傷害）、狀態（改變附近強弱：增益、減益、治療、控制）；逆反共振維持「禁忌召喚」 */
-const tacticKind=c=>c.kindLabel?c.kindLabel:c.effect==='resonate'?'禁忌召喚':['summon','portal'].includes(c.effect)?'援軍':['bomb','barrage','fire','bolt'].includes(c.effect)?'法術':'狀態';
+const tacticKind=c=>c.kindLabel?c.kindLabel:c.effect==='resonate'?'禁忌召喚':['summon','portal','proj'].includes(c.effect)?'援軍':c.effect==='calamity'?'法術':['bomb','barrage','fire','bolt'].includes(c.effect)?'法術':'狀態';
 const classGlyphKey=c=>c.type==='tactic'?(EFFECT_GLYPH[c.effect]||'burst'):c.type==='building'||c.totem?'tower':(SHAPE_BY_CATEGORY[c.category]||'sq');
 
 /* 直式卡面：名稱條＋費用、插圖（右下兵種圖示、左下旗徽）、數值條。框色：普通=古銅、菁英=銀藍、英雄=金、戰術=紫。手牌、爬塔獎勵共用。 */
@@ -55,8 +55,8 @@ function cardFace(c,o={}){
   :c.totem?cls+`<span class="yc-nums"><span class="st-atk" title="攻擊">${c.dmg||0}</span><i class="yc-sep">/</i><span class="st-dur" title="持續時間">${c.duration}<i>秒</i></span></span>`
   :cls+`<span class="yc-nums"><span class="st-atk" title="攻擊">${c.dmg||0}</span><i class="yc-sep">/</i><span class="st-hp" title="生命">${c.hp}${c.n>1?'<i>×'+c.n+'</i>':''}</span></span>`;
  const art=String(icon(c)).replace('<svg class="unit-art"','<svg preserveAspectRatio="xMidYMid slice" class="unit-art"');
- const cost=`<span class="yc-cost"${c.costLabel?' style="font-size:11px;letter-spacing:-1px;white-space:nowrap"':''}>${c.costLabel||c.cost}</span>`;
- return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''}" style="--f:${f[2]}"><div class="yc-top"><span class="yc-flat">${SixPresentation.crest(c.faction)}</span><strong${nm.length>6?' style="font-size:.78em;letter-spacing:-.5px"':''}>${nm}</strong>${cost}</div><div class="yc-art">${art}${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}</div><div class="yc-stats">${stats}</div></div>`;
+ const cost=`<span class="yc-cost"${c.costLabel?' style="font-size:12.5px;letter-spacing:-1px;white-space:nowrap"':''}>${c.costLabel||c.cost}</span>`;
+ return `<div class="ycard ${tier} ${c.type==='building'?'bld':''} ${c.omen?'omen':''} ${c.id==='n_proj'?'fx-proj':c.id==='n_calamity'?'fx-calamity':''}" style="--f:${f[2]}"><div class="yc-top"><span class="yc-flat">${SixPresentation.crest(c.faction)}</span><strong${nm.length>6?' style="font-size:.78em;letter-spacing:-.5px"':''}>${nm}</strong>${cost}</div><div class="yc-art">${art}${o.hotkey?`<span class="yc-key">${o.hotkey}</span>`:''}</div><div class="yc-stats">${stats}</div></div>`;
 }
 
 /* 長按手牌（或右鍵）開啟完整卡牌；不影響一般點選 */
@@ -71,8 +71,8 @@ function cardFace(c,o={}){
 
 /* 旗印：同旗 2/4/6 張解鎖三檔。回傳牌組中每個有卡的旗系，附亮點與目前效果 */
 function bannerSummary(deck,extra=[]){
- const {BANNERS,BANNER_NEED,bannerCount,bannerLevels}=SixEngine,cnt=bannerCount(deck,extra),lv=bannerLevels(deck,extra);
- return cnt.map((n,f)=>({f,n,lv:lv[f],b:BANNERS[f],fac:factions[f]})).filter(o=>o.n>0);
+ const {bannerDef,bannerCount,bannerLevels}=SixEngine,cnt=bannerCount(deck,extra),lv=bannerLevels(deck,extra);
+ return cnt.map((n,f)=>({f,n,lv:lv[f],b:bannerDef(f,extra),fac:factions[f]})).filter(o=>o.n>0);
 }
 function bannerHTML(deck,extra=[]){
  const {BANNER_NEED,pureFaction,PURE_BONUS,PURE_BONUS_SPIRIT,PURE_CD}=SixEngine,rows=bannerSummary(deck,extra);
@@ -90,4 +90,16 @@ function bannerLine(deck,extra=[]){
  const on=bannerSummary(deck,extra).filter(o=>o.lv);
  if(!on.length)return '';
  return '<div class="banner-line">'+on.map(o=>`<span style="--f:${o.fac[2]}"><b>${o.fac[0].slice(0,2)}·${o.b.name} ${['Ⅰ','Ⅱ','Ⅲ'][o.lv-1]}</b> ${o.b.text[o.lv-1]}</span>`).join('')+'</div>';
+}
+
+/* 合成卡圖：用現有的單位圖疊出來的卡面（王之護衛＝三個護衛頭像品字交疊；破滅法則＝蝕根靈與闇幕靈疊在一起；英靈投影＝王之護衛的圖加白色遮罩、轉 60 度） */
+let compSerial=0;
+function headsSVG(ids,pos,S,tint){const u='cp'+(compSerial++);
+ const imgs=ids.map((id,i)=>{const a=SixArt[id];if(!a)return '';const [x,y,w,h]=a.portrait,[cx,cy]=pos[i];return `<g mask="url(#${u}m)" transform="translate(${cx-S/2} ${cy-S/2})"><svg width="${S}" height="${S}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><rect width="${w}" height="${h}" fill="#1a140a"/><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}" style="filter:${tint.filter}"/><rect width="${w}" height="${h}" fill="${tint.over}" opacity="${tint.a}"/></svg></g>`;}).join('');
+ return {defs:`<radialGradient id="${u}g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff"/><stop offset=".72" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient><mask id="${u}m" maskUnits="objectBoundingBox" x="0" y="0" width="1" height="1"><rect width="${S}" height="${S}" fill="url(#${u}g)"/></mask>`,body:imgs};}
+function compositeScene(id){
+ /* 目前只有「王之護衛」需要合成：三個護衛頭像品字交疊。英靈投影、破滅法則已有專屬卡圖。 */
+ if(id!=='guard_king_earth')return '';
+ const h=headsSVG(['guard_king_earth','guard_king_storm','guard_king_aurora'],[[50,33],[28,71],[72,71]],66,{filter:'sepia(.2) saturate(1.2) brightness(1.04)',over:'#f2d98a',a:.13});
+ return `<svg class="scene-art" preserveAspectRatio="xMidYMid slice" viewBox="0 0 100 100"><defs>${h.defs}</defs><rect width="100" height="100" fill="#14100a"/>${h.body}</svg>`;
 }

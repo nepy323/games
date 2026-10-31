@@ -1,32 +1,34 @@
 /* 圖鑑：每個單位只呈現一張卡面，加上基本資料與說明。 */
-const names={troop:'兵種',tactic:'戰術',building:'建築'},factions=SixData.factions,effects={resonate:'禁忌召喚',portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
+const names={troop:'兵種',tactic:'戰術',building:'建築'},factions=SixData.factions,effects={resonate:'禁忌召喚',proj:'英靈投影',calamity:'破滅法則',portal:'傳送門／共鳴',bomb:'延遲轟擊',barrage:'多段轟擊',fire:'持續傷害',curse:'腐朽／抑制治療',root:'定身',slow:'減速',haste:'攻速強化',shield:'吸收護盾',frenzy:'攻速／自損',sacrifice:'獻祭強化',armor:'區域減傷',mine:'地面陷阱',heal:'持續治療',speed:'移速強化',power:'傷害強化',rush:'疾行／易傷',summon:'召喚',bolt:'單體解場'};
 let serial=0;
-const scene=c=>{const a=SixScenes[c.id];if(!a){const art=SixArt[c.id];if(!art)return '';const[x,y,w,h]=art.portrait,id='c'+serial++;return `<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 ${w} ${h}"><defs><clipPath id="${id}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${id})"><image href="${art.src}" x="${-x}" y="${-y}" width="${art.width}" height="${art.height}"/></g></svg>`;}const id='s'+serial++;return `<svg class="scene-art" preserveAspectRatio="xMidYMid slice" viewBox="0 0 100 100"><defs><clipPath id="${id}"><rect width="100" height="100"/></clipPath></defs><g clip-path="url(#${id})"><image preserveAspectRatio="none" href="${a.src}" x="${-a.col*100}" y="${-a.row*100}" width="${(a.cols||3)*100}" height="${(a.rows||4)*100}"/></g></svg>`;};
+const scene=c=>{const cs=compositeScene(c.id);if(cs)return cs;const a=SixScenes[c.id];if(!a){const art=SixArt[c.id];if(!art)return '';const[x,y,w,h]=art.portrait,id='c'+serial++;return `<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 ${w} ${h}"><defs><clipPath id="${id}"><rect width="${w}" height="${h}"/></clipPath>${SixPresentation.artBackDefs(c.id,id)}</defs><g clip-path="url(#${id})"><rect width="${w}" height="${h}" fill="url(#${id}g)"/><image href="${art.src}" x="${-x}" y="${-y}" width="${art.width}" height="${art.height}"${ART_TINT[c.id]?` style="filter:${ART_TINT[c.id].filter}"`:''}/>${tintLayers(c.id,w,h)}</g></svg>`;}const id='s'+serial++;return `<svg class="scene-art" preserveAspectRatio="xMidYMid slice" viewBox="0 0 100 100"><defs><clipPath id="${id}"><rect width="100" height="100"/></clipPath></defs><g clip-path="url(#${id})"><image preserveAspectRatio="none" href="${a.src}" x="${-a.col*100}" y="${-a.row*100}" width="${(a.cols||3)*100}" height="${(a.rows||4)*100}"/></g></svg>`;};
 const icon=scene;
 let cleared0=false;try{cleared0=localStorage.getItem('six-banners-cleared')==='1';}catch{}
 const entries=SixData.cards.filter(c=>(SixScenes[c.id]||SixArt[c.id])&&(!c.aiOnly||cleared0));
 /* 塔半血的護印：圖鑑以戰術卡呈現（卡名就是單位名，身分由「護印英魂」分類標示，費用顯示 0；戰場上只跳出「護印降臨」） */
 {const GT={0:'攻速光環，遠程輸出',1:'血鏈彈跳，吸血',2:'鐘聲詛咒周圍敵軍',3:'真實傷害（無視減傷）',4:'孢子彈跳，治療友軍並緩速',5:'雙發套索，緩速，可對空'};
- const rule=f=>`庇護${factions[f][0]}的英魂術式，於防禦塔的血量降至一半時自動啟動<br>英魂技能：`;
- for(const [n,g] of Object.entries(SixEngine.GUARDIANS)){const f=+n,at=entries.map(c=>c.faction).lastIndexOf(f)+1;
-  entries.splice(at,0,{id:g.id,name:g.name,faction:f,type:'tactic',effect:'summon',kindLabel:'護印英魂',cost:0,n:1,tier:'standard',category:'護印英魂',element:g.element,rules:rule(f)+GT[f]});}
+ const rule=f=>'塔生命降到一半時降臨，守塔 18 秒。',GN={f0_4:'護佑附近友軍，使其減傷；近戰攻擊【濺射】。',f0_30:'射出可彈跳的銃彈，清理成群的敵兵。',f1_5:'橫掃攻擊並【吸血】。',f1_30:'血鏈在敵人之間彈跳，並【吸血】。',f2_7:'攻擊【濺射】並詛咒敵軍，同時召喚骷髏。',f2_30:'鐘聲詛咒周圍敵軍。',f3_30:'造成無視減傷的【真實傷害】。',f3_4:'大幅減傷，並定時為自己加上護盾。',f4_7:'範圍緩速敵軍並【濺射】，緩慢再生。',f4_30:'孢子彈在敵人之間彈跳，治療友軍並使敵軍減速。',f5_30:'連發兩次套索，使目標減速，可攻擊空中。',f5_5:'一次擲出三根矛，命中者【癱瘓】。'};
+ for(const [n,ids] of Object.entries(SixEngine.GUARD_PAIR))for(const hid of ids){const g=SixEngine.GUARD_ECHOES[hid],f=+n,at=entries.map(c=>c.faction).lastIndexOf(f)+1;
+  entries.splice(at,0,{id:g.art,name:g.name,faction:f,type:'tactic',effect:'summon',kindLabel:'護印英魂',cost:0,n:1,tier:'standard',category:'護印英魂',element:g.element,rules:rule(f)+(GN[hid]||g.note)});}
  const at6=entries.map(c=>c.faction).lastIndexOf(6)+1;
- entries.splice(at6,0,{id:'fuse_earth',name:'逆合靈',faction:6,type:'tactic',effect:'summon',kindLabel:'護印英魂',cost:0,n:1,tier:'standard',category:'護印英魂',element:'律',rules:rule(6)+'逆地脈、逆焰嵐、逆極光合靈擇一'});}/* 律靈融煉：兩隻特定律靈在 6 秒內近距離先後部署會融煉。蝕與闇不融煉（它們是圖騰），不列入。 */
+ entries.splice(at6,0,{id:'guard_king_earth',name:'王之護衛',faction:6,type:'tactic',effect:'summon',kindLabel:'護印英魂',cost:0,n:1,tier:'standard',category:'護印英魂',element:'律',rules:rule(6)+'可選擇大地、焰嵐、極光其中一種。'});}/* 律靈融煉：兩隻特定律靈在 6 秒內近距離先後部署會融煉。蝕與闇不融煉（它們是圖騰），不列入。 */
 {const byId=Object.fromEntries(SixData.cards.map(c=>[c.id,c])),FU={fuse_earth:{cat:'前排',line:'大地與生機纏在一起的大型律靈。'},fuse_storm:{cat:'射手',line:'烈焰被風推成一道火嵐。'},fuse_aurora:{cat:'支援',line:'冰與光折射成的極光。'}};
  for(const f of SixEngine.FUSIONS){const s=SixEngine.summons[f.into],a=byId[f.a],b=byId[f.b],m=FU[f.into];if(!s||!a||!b||!m)continue;
   const W=SixEngine.FUSE_WEAK,BW=SixEngine.FUSE_BURST_WEAK,fmtB=k=>`融煉瞬間對周圍 ${f.burst.r} 範圍敵軍造成 ${Math.round(f.burst.dmg*k)} 傷害${f.burst.slow?'，並減速 '+f.burst.slow+' 秒':''}。`;
-  const traits=[s.multi?'一次可攻擊 '+s.multi+' 個目標':'',s.armor?'減傷 '+Math.round(s.armor*100)+'%':'',s.regen?'每秒回復 '+s.regen+' 生命':'',s.heal?'為附近友軍回復生命':'',s.ward?'提供護盾':'',s.slowHit?'命中減速':'',s.splash?'命中點周圍濺射':'',s.airHit?'可對空':'',s.ttl?'存在 '+s.ttl+' 秒':''].filter(Boolean).join('、');
+  const traits=[s.multi?'一次可攻擊 '+s.multi+' 個目標':'',s.armor?'受到的傷害降低 '+Math.round(s.armor*100)+'%':'',s.regen?'每秒回復 '+s.regen+' 生命':'',s.heal?'為附近友軍回復生命':'',s.ward?'提供護盾':'',s.slowHit?'命中減速':'',s.splash?'命中點周圍敵軍受到濺射傷害':'',s.airHit?'可對空':'',s.ttl?'存在 '+s.ttl+' 秒':''].filter(Boolean).join('、');
   const at=entries.map(c=>c.faction).lastIndexOf(6)+1;
   entries.splice(at,0,{id:f.into,name:s.kin+'合靈',faction:6,type:'troop',cost:a.cost+b.cost,hp:Math.round(s.hp*W),dmg:Math.round(s.dmg*W),n:1,category:m.cat,tier:'elite',race:'律靈',element:'律',
-   rules:`${a.name}與${b.name}近距離先後部署時自動融煉，不需額外費用（卡面費用是兩張牌的合計）。${m.line}融煉後取代這兩組。${fmtB(BW)}${traits}。`});}
+   rules:`${a.name}與${b.name}融煉而成。融煉瞬間對周圍敵軍造成 ${Math.round(f.burst.dmg*BW)} 傷害${f.burst.slow?'，並使其減速':''}。${traits?traits+'。':''}`});}
+ {const s=SixEngine.summons.fuse_fallen;entries.splice(entries.map(c=>c.faction).lastIndexOf(6)+1,0,{id:'fuse_fallen',name:'暗蝕合靈',faction:6,type:'troop',cost:0,hp:s.hp,dmg:s.dmg,n:1,category:'前排',tier:'elite',race:'律靈',element:'律',
+  rules:`破滅法則每第二次施放時，在效果結束處凝成。界環之王裏律解放後，每 5 擊也會召喚。一次可攻擊 ${s.multi} 個目標，命中減速並【吸血】。`});}
  const o=SixEngine.summons.omen,OB=SixEngine.OMEN_BASE,at2=entries.map(c=>c.faction).lastIndexOf(6)+1,fm=`落地瞬間對周圍 ${SixEngine.OMEN_BURST.r} 範圍敵軍造成 ${Math.round(SixEngine.OMEN_BURST.dmg*OB)} 傷害，並減速 ${SixEngine.OMEN_BURST.slow} 秒。`;
  entries.splice(at2,0,{id:'paradox',name:o.name,faction:6,type:'troop',cost:SixData.cards.find(c=>c.id==='n_res').cost,hp:Math.round(o.hp*OB),dmg:Math.round(o.dmg*OB),n:1,category:'前排',tier:'elite',race:'悖靈',element:'律',
-  rules:`逆反共振召出。繼承被獻祭律靈的特性：岩甲減傷、芽露回復、風矢加速、焰芯濺射、霜縛多打一個目標、微光治療、蝕根腐蝕、闇幕吸血。減傷 20%，一次攻擊 3 個目標，命中減速、吸血、可對空。${fm}數值為基準（獻祭 1／2 組再 ×1.1／×1.2）。牌組中律靈牌低於 6 張時，只能存在 12 秒。`});}
+  rules:`逆反共振召喚而成，繼承被獻祭律靈的特性。一次可攻擊 3 個目標，命中減速並【吸血】，可攻擊空中。落地瞬間對周圍敵軍造成 ${Math.round(SixEngine.OMEN_BURST.dmg*OB)} 傷害。`});}
 factions.forEach((f,i)=>filter.insertAdjacentHTML('beforeend',`<option value="${i}">${f[0]}</option>`));
 /* 排序：勢力 → 英雄 → 菁英 → 一般生物 → 建築 → 戰術（護印、援軍、法術、狀態）→ 費用 */
 const KR={'護印英魂':0,'援軍':1,'禁忌召喚':1,'法術':2,'狀態':3};
 const grp=c=>c.tier==='hero'?0:c.type==='troop'?(c.tier==='elite'?1:2):c.type==='building'?3:4+(KR[tacticKind(c)]??3)*.1;
-function render(){grid.innerHTML=entries.map((c,i)=>[c,i]).filter(([c])=>filter.value==='all'||c.faction===+filter.value).sort(([a,i],[b,j])=>a.faction-b.faction||grp(a)-grp(b)||a.cost-b.cost||i-j).map(([c])=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${[c.race,c.category].filter(Boolean).join(' · ')||'—'}</small><p>${c.rules||c.desc||''}</p></div></article>`).join('');}
+function render(){grid.innerHTML=entries.map((c,i)=>[c,i]).filter(([c])=>filter.value==='all'||c.faction===+filter.value).sort(([a,i],[b,j])=>a.faction-b.faction||grp(a)-grp(b)||a.cost-b.cost||i-j).map(([c])=>`<article><div class="gcard">${cardFace(c)}</div><div class="ginfo"><small>${factions[c.faction][0]} · ${SixPresentation.typeTag(c)}${c.category||''}${c.treant?' · 樹人':''}</small><p>${SixPresentation.rules(c)}</p></div></article>`).join('');}
 filter.onchange=render;render();
 
 const rvFace=id=>{const a=SixArt[id];if(!a)return '';const[x,y,w,h]=a.portrait,k='rv'+(serial++);return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><defs><clipPath id="${k}"><rect width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${k})"><image href="${a.src}" x="${-x}" y="${-y}" width="${a.width}" height="${a.height}"/></g></svg>`;};
@@ -55,7 +57,7 @@ const pool=(t,a)=>`<details class="pool"><summary>${esc(t)}（${a.length}）</su
  h+=`<h2>序章 <small>${esc(S.prologue.title)}</small></h2>${lines(S.prologue.lines)}${lines(S.prologue.after||[])}`;
  h+=`<h2>${esc(S.spirits.title)}</h2>${lines(S.spirits.lines)}`;
  h+=`<h2>六境 <small>每境：一場戰鬥或精英、一場守護戰，取得一枚律種</small></h2>`;
- h+=S.chapters.map((c,i)=>`<article class="st-ch"><img class="sc" src="${c.scene}" alt="" loading="lazy"><div><h3>${i+1}．${esc(c.name)} <small style="color:#9ca397;font-weight:400">${esc(c.place)}</small></h3>${c.lines.map(t=>`<p>${esc(t)}</p>`).join('')}<p class="goal">目標：${esc(c.goal)}</p><div class="st-g" style="--ec:${c.guardian.color}"><span class="face">${rvFace(c.guardian.art)}</span><div><b>${esc(c.guardian.name)}</b>（${esc(c.guardian.label)}）<br>${esc(c.guardian.note)}</div></div><p style="font-size:13px;color:#9ca397">${esc(c.seed.name)}・${esc(c.seed.item)}：${esc(c.seed.line)}</p></div></article>`).join('');
+ h+=S.chapters.map((c,i)=>`<article class="st-ch"><img class="sc" src="${c.scene}" alt="" loading="lazy"><div><h3>${i+1}．${esc(c.name)} <small style="color:#9ca397;font-weight:400">${esc(c.place)}</small></h3>${c.lines.map(t=>`<p>${esc(t)}</p>`).join('')}<p class="goal">目標：${esc(c.goal)}</p><div class="st-g" style="--ec:${c.guardian.color}"><span class="face">${rvFace(c.guardian.art)}</span><div><b>${esc(c.guardian.name)}</b>（${esc(c.guardian.label)}）<br>${esc(c.guardian.note)}</div></div><p style="font-size:14.5px;color:#9ca397">${esc(c.seed.name)}・${esc(c.seed.item)}：${esc(c.seed.line)}</p></div></article>`).join('');
  h+=`<h2>終章 <small>${esc(S.finale.title)}</small></h2>${lines(S.finale.lines)}<div class="st-g" style="--ec:${S.finale.boss.color}"><span class="face">${rvFace(S.finale.boss.art)}</span><div><b>${esc(S.finale.boss.name)}</b><br>${esc(S.finale.boss.note)}</div></div>${lines(S.confront.lines)}`;
  h+=`<h2>尾聲 <small>${esc(S.ending.title)}</small></h2>${lines(S.ending.lines)}`;
  h+=`<h2>隨機文本 <small>每局不一樣，同一局內不重複</small></h2>`;
@@ -71,7 +73,7 @@ const pool=(t,a)=>`<details class="pool"><summary>${esc(t)}（${a.length}）</su
 
 /* 勢力介紹：用徽章 */
 (()=>{const F=SixData.factions,B=SixEngine.BANNERS,C=SixData.cards;
- document.getElementById('factions').innerHTML=`<h2>七個勢力 <small>同一勢力的牌湊到 2、4、6 張，啟動旗印加成</small></h2>`+F.map((f,i)=>{
+ document.getElementById('factions').innerHTML=`<h2>七個勢力 </h2>`+F.map((f,i)=>{
   const mine=C.filter(c=>c.faction===i&&(!c.aiOnly||cleared0)),hero=mine.filter(c=>c.tier==='hero').map(c=>c.name.split('・')[0]),elite=mine.filter(c=>c.tier==='elite').map(c=>c.name);
   const b=B[i];
   return `<article class="fac" style="--fc:${f[2]}"><img class="bd" src="assets/emblems/badge-${i}.webp" alt="" loading="lazy"><div><h3>${esc(f[0])}<small>${esc(f[1])}</small></h3>

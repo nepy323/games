@@ -4,9 +4,9 @@ let heroPick=-1;
  const bar=document.createElement('div');bar.id='fieldBar';document.querySelector('.control .resource').appendChild(bar);
  let sig='';
  const banner=document.createElement('div');banner.id='heroBanner';banner.hidden=true;document.querySelector('.arena').appendChild(banner);let bt=0;
- const quip=(id,kind)=>{const L=typeof STORY!=='undefined'&&STORY.heroLines&&STORY.heroLines[id];if(!L)return;const pool=L[kind],c=CARDS[id],line=pool[Math.floor(Math.random()*pool.length)];
+ let lastQuip=0;const quip=(id,kind)=>{if(kind==='skill'){if(Date.now()-lastQuip<9000||Math.random()>.4)return;}lastQuip=Date.now();const L=typeof STORY!=='undefined'&&STORY.heroLines&&STORY.heroLines[id];if(!L)return;const pool=L[kind],c=CARDS[id],line=pool[Math.floor(Math.random()*pool.length)];
   banner.style.setProperty('--ec',factions[c.faction][2]);
-  banner.innerHTML=`<span class="hb-face">${artSVG(id,'portrait')}</span><div><small>${kind==='skill'?'發動主動技':'英雄登場'}</small><b>${c.name.split('・')[0]}</b><p>「${line}」</p></div>`;
+  banner.innerHTML=`<span class="hb-face">${artSVG(id,'portrait')}</span><div><small>${kind==='skill'?'英雄技能':'英雄登場'}</small><b>${c.name.split('・')[0]}</b><p>「${line}」</p></div>`;
   banner.hidden=false;banner.classList.remove('show');void banner.offsetWidth;banner.classList.add('show');clearTimeout(bt);bt=setTimeout(()=>{banner.hidden=true;},2600);};
  window.heroQuip=quip;
  /* 技能扣點：能量數字抖動變紅，旁邊飄出 -1 */
@@ -43,22 +43,22 @@ window.SKILL_DOT=SKILL_DOT;
    const h=st[+el.dataset.hero],lab=el.querySelector('.fb-label'),ring=el.querySelector('.fb-ring');
    el.style.setProperty('--p',Math.round(h.progress*100)+'%');
    el.classList.toggle('ready',h.ready);el.classList.toggle('field',h.onField);el.classList.toggle('picked',heroPick===h.idx);el.classList.toggle('skill-ready',h.skillReady);
-   lab.textContent=h.onField?(h.skillReady?h.skill:'冷卻 '+fmt(h.skillWait)):h.wait>0?'重整 '+fmt(h.wait):h.ready?'登場 ◆'+h.cost:Math.min(h.count,h.need)+' / '+h.need;
-   el.title=h.onField?h.skill+'（花 '+SixEngine.HERO_ACTIVE_COST+' 點）：'+h.skillDesc+(HERO_HS[h.id]?'\n計數「'+HERO_HS[h.id].name+'」每 '+HERO_HS[h.id].need+' 次（花 '+SixEngine.HERO_COUNTER_COST+' 點）：'+HERO_HS[h.id].desc:''):'條件：'+h.cond+' '+h.count+'/'+h.need+'；登場需 ◆'+h.cost;
+   lab.textContent=h.onField?(h.ammo?(h.ammo.cd>0?'裝填 '+fmt(h.ammo.cd):'彈藥 '+h.ammo.left+'/'+h.ammo.max):'在場'):h.wait>0?'重整 '+fmt(h.wait):h.ready?'即將登場':Math.min(h.count,h.need)+' / '+h.need;
+   el.title=h.onField?(h.skillDesc?'登場效果：'+h.skillDesc:'')+(h.pas?'\n被動：'+h.pas:'')+(HERO_HS[h.id]?'\n計數「'+HERO_HS[h.id].name+'」每 '+HERO_HS[h.id].need+' 次（花 '+SixEngine.HERO_COUNTER_COST+' 點）：'+HERO_HS[h.id].desc:''):'條件：'+h.cond+' '+h.count+'/'+h.need+'；條件達成後自動從主堡出發，不花水晶'+(h.skillDesc?'\n登場效果：'+h.skillDesc:'')+(h.pas?'\n被動：'+h.pas:'')+(HERO_HS[h.id]?'\n計數「'+HERO_HS[h.id].name+'」每 '+HERO_HS[h.id].need+' 次：'+HERO_HS[h.id].desc:'');
   });
   if(heroPick>=0&&(!st[heroPick]||!st[heroPick].ready)){heroPick=-1;}
   document.body.classList.toggle('hero-pick',heroPick>=0);
   if(items.length&&bar.dataset.newItem!==String(items.length)){bar.dataset.newItem=String(items.length);}
  };
  setInterval(update,150);
- setInterval(()=>{if(typeof battle==='undefined'||!battle||!battle.notice)return;while(battle.notice.length){const n=battle.notice.shift();if(n.kind==='item'){itemBanner(n);beep(n.team===0?420:200,.14);}else if(n.kind==='skillcost'){if(n.team===0)energyPay(n);}else if(n.team===0){toast(n.text);beep(520,.14);}}},200);
+ setInterval(()=>{if(typeof battle==='undefined'||!battle||!battle.notice)return;while(battle.notice.length){const n=battle.notice.shift();if(n.kind==='item'){itemBanner(n);beep(n.team===0?420:200,.14);}else if(n.kind==='skillcost'){if(n.team===0)energyPay(n);}else if(n.kind==='heroenter'){if(n.team===0){quip(n.art,'summon');beep(260,.12);toast(n.text);}}else if(n.kind==='herocount'){if(n.team===0&&n.art)quip(n.art,'skill');}else if(n.team===0){toast(n.text);beep(520,.14);}}},200);
  bar.addEventListener('click',e=>{
   const hb=e.target.closest('[data-hero]'),ib=e.target.closest('[data-item]');
   if(hb){
    const idx=+hb.dataset.hero,h=battle.heroStatus(0)[idx];
-   if(h.onField){const err=battle.castSkill(0,idx);if(err){toast(err);beep(90);}else{beep(420,.12);quip(h.id,'skill');}return;}
-   if(h.ready){heroPick=heroPick===idx?-1:idx;selected=-1;renderHand();$('hint').textContent=heroPick>=0?h.name+'：點擊己方半場登場（◆'+h.cost+'）':'選擇卡牌，再點擊戰場';return;}
-   toast(h.wait>0?'英雄重整中，約 '+Math.ceil(h.wait)+' 秒':h.cond+' '+h.count+' / '+h.need+'，達成後可登場');return;
+   if(h.onField){toast(h.name+' 已在戰場');return;}
+   if(h.ready){toast('條件達成，英雄將自動從主堡出發');return;}
+   toast(h.wait>0?'英雄重整中，約 '+Math.ceil(h.wait)+' 秒':h.cond+' '+h.count+' / '+h.need+(h.alt?'（或場上陣亡 '+h.alt+'）':'')+'，達成後可登場');return;
   }
   if(ib){const err=battle.useItem(0,+ib.dataset.item);if(err){toast(err);beep(90);}else{sig='';}}
  });
