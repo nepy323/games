@@ -348,3 +348,8 @@ body.in-battle .battlefield-name{display:none!important}
 .card-chips{justify-content:flex-start;gap:8px;min-height:38px}
 .card-chips>b:last-child{margin-left:auto}
 
+
+/* 手機：預設牌組的兩個分頁獨立一排、各占一半，不再和「收合」擠在同一行 */
+@media(max-width:999px){#presetPicker .pp-top .pp-tabs{order:3;flex:1 1 100%;margin:4px 0 0}#presetPicker .pp-tabs button{flex:1}}
+/* 手機全螢幕（加到主畫面）時，頂端的狀態列（時間、電量）不要蓋住標題 */
+@media(max-width:700px){header{padding-top:max(14px,env(safe-area-inset-top,0px))}}

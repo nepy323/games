@@ -15,8 +15,9 @@
  const match=()=>presets.findIndex(p=>same(p[2],draft));
  const groupOf=i=>BANNER.includes(i)?'banner':'theme';
  const item=(i,cur,banner)=>{const p=presets[i],fi=banner?facOf(i):CARDS[(p[3]||[])[0]]?CARDS[p[3][0]].faction:-1,f=fi>=0?factions[fi]:null;return `<button class="pp-item ${cur===i?'on':''}" data-i="${i}" title="${p[1]}" ${f?`style="--f:${f[2]}"`:''}>${f?`<span class="pp-crest">${SixPresentation.crest(fi)}</span>`:''}<span class="pp-txt"><b>${p[0]}</b><small>${p[1]}</small></span></button>`;};
+ let lastCur=-2;
  function paint(){
-  const cur=match();if(cur>=0)group=groupOf(cur);
+  const cur=match();if(cur>=0&&cur!==lastCur)group=groupOf(cur);lastCur=cur; /* 只在套用的牌組換了才自動切分頁，不然手動點分頁會被切回去 */
   bar.querySelector('.pb-n').textContent=cur>=0?presets[cur][0]:'自訂牌組';bar.querySelector('.pb-d').textContent=cur>=0?presets[cur][1]:'目前的八張牌與任何預設牌組都不完全相同。';
   box.dataset.g=group;box.querySelectorAll('.pp-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.g===group));
   box.querySelector('.pp-col[data-g="banner"] .pp-list').innerHTML=BANNER.map(i=>item(i,cur,true)).join('');
