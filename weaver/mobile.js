@@ -8,6 +8,10 @@
  let drag=null,ghost=null,block=0;
  const toField=(e,touch)=>{const r=cv.getBoundingClientRect(),y=e.clientY-(touch?44:0);return{x:(e.clientX-r.left)/r.width*600,y:(y-r.top)/r.height*700,over:e.clientX>=r.left&&e.clientX<=r.right&&y>=r.top&&y<=r.bottom};};
  const end=()=>{if(ghost)ghost.remove();ghost=null;drag=null;mouse=null;};
+ window.endDrag=end; /* 戰鬥結束、暫停等狀況由外部清掉拖曳殘影 */
+ /* 手指在拖曳中放開，但手牌元素已被重畫而收不到放開事件時，殘影要自己清掉 */
+ ['pointerup','pointercancel','touchend','touchcancel'].forEach(t=>document.addEventListener(t,()=>setTimeout(()=>{if(ghost)end();},0)));
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)end();});
  hand.addEventListener('pointerdown',e=>{
   const b=e.target.closest('.handcard');if(!b||mode!=='playing'||battle.auto[0])return;
   drag={slot:+b.dataset.slot,x:e.clientX,y:e.clientY,id:e.pointerId,on:false,touch:e.pointerType!=='mouse'};
